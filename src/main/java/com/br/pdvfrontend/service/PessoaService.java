@@ -1,55 +1,62 @@
 package com.br.pdvfrontend.service;
 
 import com.br.pdvfrontend.model.Pessoa;
+import com.br.pdvfrontend.util.HttpClient;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 public class PessoaService {
 
-    private static final List<Pessoa> mockPessoas = new ArrayList<>();
-    private static final AtomicLong idCounter = new AtomicLong(4);
-
-    static {
-        mockPessoas.add(new Pessoa(1L, "João da Silva", "111.111.111-11", "joao.silva@example.com"));
-        mockPessoas.add(new Pessoa(2L, "Maria Oliveira", "222.222.222-22", "maria.oliveira@example.com"));
-        mockPessoas.add(new Pessoa(3L, "José Santos", "333.333.333-33", "jose.santos@example.com"));
-    }
+    private final HttpClient httpClient = new HttpClient();
+    private final ObjectMapper objectMapper = new ObjectMapper(); // Trocado Gson por ObjectMapper
+    private final String apiPath = "/pessoas";
 
     public List<Pessoa> listar() {
-        // Retorna uma cópia para evitar modificações externas na lista original
-        return new ArrayList<>(mockPessoas);
+        try {
+            String jsonResponse = httpClient.get(apiPath);
+            // Trocado a forma de obter a lista para o padrão do Jackson
+            return objectMapper.readValue(jsonResponse, new TypeReference<ArrayList<Pessoa>>() {});
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
     }
 
     public Pessoa buscarPorId(Long id) {
-        return mockPessoas.stream()
-                .filter(p -> p.getId().equals(id))
-                .findFirst()
-                .orElse(null);
+        try {
+            String jsonResponse = httpClient.get(apiPath + "/" + id);
+            return objectMapper.readValue(jsonResponse, Pessoa.class);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public Pessoa salvar(Pessoa pessoa) {
-        if (pessoa.getId() == null) { // Novo cadastro
-            pessoa.setId(idCounter.getAndIncrement());
-            mockPessoas.add(pessoa);
-        } else { // Atualização
-            atualizar(pessoa);
-        }
-        return pessoa;
-    }
-
-    public void atualizar(Pessoa pessoa) {
-        for (int i = 0; i < mockPessoas.size(); i++) {
-            if (Objects.equals(mockPessoas.get(i).getId(), pessoa.getId())) {
-                mockPessoas.set(i, pessoa);
-                return;
+        try {
+            String jsonInput = objectMapper.writeValueAsString(pessoa); // Trocado toJson por writeValueAsString
+            String jsonResponse;
+            if (pessoa.getId() == null) { // Novo cadastro (POST)
+                jsonResponse = httpClient.post(apiPath, jsonInput);
+            } else { // Atualização (PUT)
+                jsonResponse = httpClient.put(apiPath + "/" + pessoa.getId(), jsonInput);
             }
+            return objectMapper.readValue(jsonResponse, Pessoa.class);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 
     public void deletar(Long id) {
-        mockPessoas.removeIf(p -> p.getId().equals(id));
+        try {
+            httpClient.delete(apiPath + "/" + id);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
