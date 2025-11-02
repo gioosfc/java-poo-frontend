@@ -1,30 +1,51 @@
 package com.br.pdvfrontend.model;
 
+import com.br.pdvfrontend.enums.TipoPessoa;
+
+import java.time.LocalDate;
+
 public class Pessoa {
     private Long id;
-    private String nome;
-    private String cpf;
+    private String nomeCompleto;
+    private Long numeroCtps;
+    private String cpfCnpj;
     private String email;
+    private LocalDate dataNascimento;
+    private TipoPessoa tipoPessoa;
 
     public Pessoa() {
     }
 
-    public Pessoa(Long id, String nome, String cpf, String email) {
-        this.id = id;
-        this.nome = nome;
-        this.cpf = cpf;
-        this.email = email;
+    public Pessoa(String nomeCompleto,
+                  String cpfCnpj,
+                  Long numeroCtps,
+                  LocalDate dataNascimento,
+                  TipoPessoa tipoPessoa) {
+        this.nomeCompleto = nomeCompleto;
+        this.cpfCnpj = cpfCnpj;
+        this.numeroCtps = numeroCtps;
+        this.dataNascimento = dataNascimento;
+        this.tipoPessoa = tipoPessoa;
     }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
+    public String getNomeCompleto() { return nomeCompleto; }
+    public void setNomeCompleto(String nome) { this.nomeCompleto = nome; }
 
-    public String getCpf() { return cpf; }
-    public void setCpf(String cpf) { this.cpf = cpf; }
+    public String getCpfCnpj() { return cpfCnpj; }
+    public void setCpfCnpj(String cpf) { this.cpfCnpj = cpf; }
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public Long getNumeroCtps() { return numeroCtps; }
+    public void setNumeroCtps(Long numeroCtps) { this.numeroCtps = numeroCtps; }
+
+    public LocalDate getDataNascimento() { return dataNascimento; }
+    public void setDataNascimento(LocalDate dataNascimento) { this.dataNascimento = dataNascimento; }
+
+    public TipoPessoa getTipoPessoa() { return tipoPessoa; }
+    public void setTipoPessoa(TipoPessoa tipoPessoa) { this.tipoPessoa = tipoPessoa; }
 }

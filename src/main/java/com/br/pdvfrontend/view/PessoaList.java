@@ -44,7 +44,7 @@ public class PessoaList extends JFrame {
         List<Pessoa> pessoas = pessoaService.listar();
         DefaultTableModel model = new DefaultTableModel(new Object[]{"ID", "Nome", "CPF", "Email"}, 0);
         for (Pessoa p : pessoas) {
-            model.addRow(new Object[]{p.getId(), p.getNome(), p.getCpf(), p.getEmail()});
+            model.addRow(new Object[]{p.getId(), p.getNomeCompleto(), p.getCpfCnpj(), p.getEmail()});
         }
         table.setModel(model);
     }

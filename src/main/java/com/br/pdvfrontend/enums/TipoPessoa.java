@@ -1,18 +1,12 @@
 package com.br.pdvfrontend.enums;
 
-public enum TipoPessoa {
+    public enum TipoPessoa {
+        FISICA("Pessoa Física"),
+        JURIDICA("Pessoa Jurídica");
 
-    FISICA("Pessoa Física"),
-    JURIDICA("Pessoa Jurídica");
+        private final String descricao;
+        TipoPessoa(String descricao) { this.descricao = descricao; }
+        public String getDescricao() { return descricao; }
 
-    private final String descricao;
-
-    private TipoPessoa(String descricao) {
-        this.descricao = descricao;
+        @Override public String toString() { return descricao; }
     }
-
-    public String getDescricao() {
-        return descricao;
-    }
-
-}
