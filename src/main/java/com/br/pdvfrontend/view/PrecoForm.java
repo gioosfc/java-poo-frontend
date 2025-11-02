@@ -5,21 +5,27 @@ import com.br.pdvfrontend.service.PrecoService;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.math.BigDecimal;
 import java.util.Date;
 
-public class PrecoForm extends JFrame {
+public class PrecoForm extends JDialog {
+
+    private final PrecoList ownerList;
+    private final PrecoService precoService;
+    private Preco preco; // O objeto sendo editado, ou null se for novo
 
     private JTextField valorField;
-    private JButton salvarButton;
 
-    public PrecoForm() {
+    public PrecoForm(Frame owner, PrecoList ownerList, PrecoService precoService, Preco preco) {
+        super(owner, (preco == null) ? "Novo Preço" : "Editar Preço", true);
+        this.ownerList = ownerList;
+        this.precoService = precoService;
+        this.preco = preco;
+
         setTitle("Cadastro de Preço");
         setSize(400, 150);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLocationRelativeTo(null);
+        setLocationRelativeTo(owner);
 
         JPanel panel = new JPanel(new GridLayout(2, 2, 10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -28,27 +34,37 @@ public class PrecoForm extends JFrame {
         valorField = new JTextField();
         panel.add(valorField);
 
-        salvarButton = new JButton("Salvar");
-        panel.add(new JLabel()); // empty label for spacing
-        panel.add(salvarButton);
+        JButton btnSalvar = new JButton("Salvar");
+        JButton btnCancelar = new JButton("Cancelar");
+        panel.add(btnSalvar);
+        panel.add(btnCancelar);
 
-        salvarButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                salvarPreco();
-            }
-        });
+        btnSalvar.addActionListener(e -> onSalvar());
+        btnCancelar.addActionListener(e -> dispose());
 
         add(panel);
+
+        if (preco != null) {
+            valorField.setText(preco.getValor().toString());
+        }
     }
 
-    private void salvarPreco() {
+    private void onSalvar() {
         try {
             BigDecimal valor = new BigDecimal(valorField.getText());
             Date dataAtual = new Date();
 
-            Preco novoPreco = new Preco(valor, dataAtual, dataAtual);
-            PrecoService.getInstance().addPreco(novoPreco);
+            if (preco == null) {
+                preco = new Preco();
+            }
+
+            preco.setValor(valor);
+            preco.setDataAlteracao(dataAtual);
+            preco.setHoraAlteracao(dataAtual);
+
+            precoService.salvar(preco);
+
+            ownerList.atualizarTabela();
 
             JOptionPane.showMessageDialog(this, "Preço salvo com sucesso!");
             dispose(); // Close the form after saving

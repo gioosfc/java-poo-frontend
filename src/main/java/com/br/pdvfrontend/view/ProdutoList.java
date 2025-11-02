@@ -22,7 +22,7 @@ public class ProdutoList extends JFrame {
         JButton btnEditar = new JButton("Editar");
         JButton btnExcluir = new JButton("Excluir");
 
-        btnNovo.addActionListener(e -> new ProdutoForm(null, this));
+        btnNovo.addActionListener(e -> new ProdutoForm(this, produtoService, null));
         btnEditar.addActionListener(e -> editarProduto());
         btnExcluir.addActionListener(e -> excluirProduto());
 
@@ -55,7 +55,7 @@ public class ProdutoList extends JFrame {
         if (linha != -1) {
             Long id = (Long) table.getValueAt(linha, 0);
             Produto produto = produtoService.buscarPorId(id);
-            new ProdutoForm(produto, this);
+            new ProdutoForm(this, produtoService, produto);
         } else {
             JOptionPane.showMessageDialog(this, "Selecione um produto para editar.");
         }

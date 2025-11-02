@@ -1,5 +1,8 @@
 package com.br.pdvfrontend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Produto {
     //atributos
     private Long id;

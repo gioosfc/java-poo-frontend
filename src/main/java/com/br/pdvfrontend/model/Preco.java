@@ -1,12 +1,19 @@
 package com.br.pdvfrontend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.math.BigDecimal;
 import java.util.Date;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Preco {
+    private Long id;
     private BigDecimal valor;
     private Date dataAlteracao;
     private Date horaAlteracao;
+
+    public Preco() {
+    }
 
     public Preco (BigDecimal valor, Date dataAlteracao, Date horaAlteracao){
         this.dataAlteracao = dataAlteracao;
@@ -15,6 +22,10 @@ public class Preco {
     }
 
     //getters
+    public Long getId() {
+        return id;
+    }
+
     public BigDecimal getValor() {
         return valor;
     }
@@ -28,6 +39,10 @@ public class Preco {
     }
 
     //setters
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public void setDataAlteracao(Date dataAlteracao) {
         this.dataAlteracao = dataAlteracao;
     }

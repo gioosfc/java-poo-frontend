@@ -1,72 +1,95 @@
 package com.br.pdvfrontend.util;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class HttpClient {
 
-    private static final java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
-    private static final String BASE_URL = "http://localhost:8080/api/v1";
+    private static final String BASE_URL = "http://localhost:8080/api/v1/";
 
-    public String get(String path) throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + path))
-                .GET()
-                .build();
+    public String get(String path) {
+        try {
+            URL url = new URL(BASE_URL + path);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Accept", "application/json");
 
-        if (response.statusCode() != 200) {
-            throw new IOException("Unexpected code " + response);
+            return readResponse(conn);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-
-        return response.body();
     }
 
-    public String post(String path, String jsonBody) throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + path))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-                .build();
+    public String post(String path, String json) {
+        try {
+            URL url = new URL(BASE_URL + path);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setDoOutput(true);
 
-        if (response.statusCode() != 200 && response.statusCode() != 201) {
-            throw new IOException("Unexpected code " + response);
+            writeBody(conn, json);
+            return readResponse(conn);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-
-        return response.body();
     }
 
-    public String put(String path, String jsonBody) throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + path))
-                .header("Content-Type", "application/json")
-                .PUT(HttpRequest.BodyPublishers.ofString(jsonBody))
-                .build();
+    public String put(String path, String json) {
+        try {
+            URL url = new URL(BASE_URL + path);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            conn.setRequestMethod("PUT");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setDoOutput(true);
 
-        if (response.statusCode() != 200) {
-            throw new IOException("Unexpected code " + response);
+            writeBody(conn, json);
+            return readResponse(conn);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-
-        return response.body();
     }
 
-    public void delete(String path) throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + path))
-                .DELETE()
-                .build();
+    public void delete(String path) {
+        try {
+            URL url = new URL(BASE_URL + path);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
-        HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
+            conn.setRequestMethod("DELETE");
+            conn.getResponseCode();
 
-        if (response.statusCode() != 200 && response.statusCode() != 204) {
-            throw new IOException("Unexpected code " + response);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
+    }
+
+    private void writeBody(HttpURLConnection conn, String json) throws Exception {
+        OutputStream os = conn.getOutputStream();
+        os.write(json.getBytes());
+        os.flush();
+        os.close();
+    }
+
+    private String readResponse(HttpURLConnection conn) throws Exception {
+        BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+
+        String output;
+        StringBuilder response = new StringBuilder();
+
+        while ((output = br.readLine()) != null) {
+            response.append(output);
+        }
+
+        conn.disconnect();
+        return response.toString();
     }
 }

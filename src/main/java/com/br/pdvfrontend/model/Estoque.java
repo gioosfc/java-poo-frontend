@@ -1,11 +1,15 @@
 package com.br.pdvfrontend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.math.BigDecimal;
 import java.util.Date;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Estoque {
 
     //atributos
+    private Long id;
     private BigDecimal quantidade;
     private String localTanque;
     private String localEndereco;
@@ -13,6 +17,9 @@ public class Estoque {
     private Date dataDeValidade;
 
     //construtor
+    public Estoque() {
+    }
+
     public Estoque (BigDecimal quantidade, String localEndereco, String localTanque, String loteFabricacao, Date dataDeValidade){
         this.quantidade = quantidade;
         this.localEndereco = localEndereco;
@@ -22,6 +29,10 @@ public class Estoque {
     }
 
     //getters
+    public Long getId() {
+        return id;
+    }
+
     public BigDecimal getQuantidade(){
         return quantidade;
     }
@@ -43,6 +54,10 @@ public class Estoque {
     }
 
     //setters
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public void setQuantidade (BigDecimal quantidade){
         this.quantidade = quantidade;
     }

@@ -1,7 +1,11 @@
 package com.br.pdvfrontend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Contato {
     //atributos
+    private Long id;
     private String telefone;
     private String endereco;
     private  String email;
@@ -18,6 +22,10 @@ public class Contato {
     }
 
     //getters
+    public Long getId() {
+        return id;
+    }
+
     public String getTelefone (){
         return telefone;
     }
@@ -31,6 +39,10 @@ public class Contato {
     }
 
     //setters
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public void setTelefone(String telefone){
         this.telefone = telefone;
     }

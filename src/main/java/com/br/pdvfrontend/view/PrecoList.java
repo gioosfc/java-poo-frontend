@@ -6,36 +6,37 @@ import com.br.pdvfrontend.service.PrecoService;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class PrecoList extends JFrame {
 
+    private final PrecoService precoService;
     private JTable table;
     private DefaultTableModel tableModel;
-    private JButton novoButton;
-    private JButton atualizarButton;
 
     public PrecoList() {
+        this.precoService = new PrecoService();
+
         setTitle("Lista de Preços");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Table
-        String[] columnNames = {"Valor", "Data Alteração", "Hora Alteração"};
+        // Tabela
+        String[] columnNames = {"ID", "Valor", "Data Alteração", "Hora Alteração"};
         tableModel = new DefaultTableModel(columnNames, 0);
         table = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(table);
 
-        // Buttons
-        JPanel buttonPanel = new JPanel();
-        novoButton = new JButton("Novo Preço");
-        atualizarButton = new JButton("Atualizar");
-        buttonPanel.add(novoButton);
-        buttonPanel.add(atualizarButton);
+        // Painel de botões
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton btnNovo = new JButton("Novo");
+        JButton btnEditar = new JButton("Editar");
+        JButton btnExcluir = new JButton("Excluir");
+        buttonPanel.add(btnNovo);
+        buttonPanel.add(btnEditar);
+        buttonPanel.add(btnExcluir);
 
         // Layout
         Container contentPane = getContentPane();
@@ -43,38 +44,52 @@ public class PrecoList extends JFrame {
         contentPane.add(scrollPane, BorderLayout.CENTER);
         contentPane.add(buttonPanel, BorderLayout.SOUTH);
 
-        // Actions
-        novoButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                PrecoForm precoForm = new PrecoForm();
-                precoForm.setVisible(true);
+        // Ações
+        btnNovo.addActionListener(e -> abrirFormulario(null));
+
+        btnEditar.addActionListener(e -> {
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow != -1) {
+                Long id = (Long) tableModel.getValueAt(selectedRow, 0);
+                Preco precoParaEditar = precoService.buscarPorId(id);
+                abrirFormulario(precoParaEditar);
+            } else {
+                JOptionPane.showMessageDialog(this, "Selecione um preço para editar.", "Aviso", JOptionPane.WARNING_MESSAGE);
             }
         });
 
-        atualizarButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                atualizarTabela();
+        btnExcluir.addActionListener(e -> {
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow != -1) {
+                int confirm = JOptionPane.showConfirmDialog(this, "Tem certeza que deseja excluir?", "Excluir Preço", JOptionPane.YES_NO_OPTION);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    Long id = (Long) tableModel.getValueAt(selectedRow, 0);
+                    precoService.deletar(id);
+                    atualizarTabela();
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Selecione um preço para excluir.", "Aviso", JOptionPane.WARNING_MESSAGE);
             }
         });
 
-        // Initial data load
+        // Carrega os dados iniciais
         atualizarTabela();
     }
 
-    private void atualizarTabela() {
-        // Clear existing data
-        tableModel.setRowCount(0);
+    private void abrirFormulario(Preco preco) {
+        PrecoForm form = new PrecoForm(this, this, precoService, preco);
+        form.setVisible(true);
+    }
 
-        // Get data from service
-        List<Preco> precos = PrecoService.getInstance().getPrecos();
+    public void atualizarTabela() {
+        tableModel.setRowCount(0); // Limpa a tabela
+        List<Preco> precos = precoService.listar();
         SimpleDateFormat sdfDate = new SimpleDateFormat("dd/MM/yyyy");
         SimpleDateFormat sdfTime = new SimpleDateFormat("HH:mm:ss");
 
-        // Populate table
         for (Preco preco : precos) {
             Object[] rowData = {
+                    preco.getId(),
                     preco.getValor(),
                     sdfDate.format(preco.getDataAlteracao()),
                     sdfTime.format(preco.getHoraAlteracao())

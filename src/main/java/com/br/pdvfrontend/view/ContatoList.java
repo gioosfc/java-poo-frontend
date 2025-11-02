@@ -28,7 +28,7 @@ public class ContatoList extends JFrame {
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // Tabela
-        String[] colunas = {"Telefone", "Email", "Endereço"};
+        String[] colunas = {"ID", "Telefone", "Email", "Endereço"};
         tableModel = new DefaultTableModel(colunas, 0);
         table = new JTable(tableModel);
         mainPanel.add(new JScrollPane(table), BorderLayout.CENTER);
@@ -51,7 +51,8 @@ public class ContatoList extends JFrame {
         btnEditar.addActionListener(e -> {
             int selectedRow = table.getSelectedRow();
             if (selectedRow != -1) {
-                Contato contatoParaEditar = contatoService.listarTodos().get(selectedRow);
+                Long id = (Long) tableModel.getValueAt(selectedRow, 0);
+                Contato contatoParaEditar = contatoService.buscarPorId(id);
                 abrirFormulario(contatoParaEditar);
             } else {
                 JOptionPane.showMessageDialog(this, "Selecione um contato para editar.", "Aviso", JOptionPane.WARNING_MESSAGE);
@@ -63,8 +64,8 @@ public class ContatoList extends JFrame {
             if (selectedRow != -1) {
                 int confirm = JOptionPane.showConfirmDialog(this, "Tem certeza que deseja excluir?", "Excluir Contato", JOptionPane.YES_NO_OPTION);
                 if (confirm == JOptionPane.YES_OPTION) {
-                    Contato contatoParaExcluir = contatoService.listarTodos().get(selectedRow);
-                    contatoService.excluir(contatoParaExcluir);
+                    Long id = (Long) tableModel.getValueAt(selectedRow, 0);
+                    //contatoService.deletar(id);
                     atualizarTabela();
                 }
             } else {
@@ -77,19 +78,15 @@ public class ContatoList extends JFrame {
     }
 
     private void abrirFormulario(Contato contato) {
-        // A classe ContatoForm será criada a seguir
         ContatoForm form = new ContatoForm(this, this, contatoService, contato);
         form.setVisible(true);
     }
 
-    /**
-     * Atualiza a tabela com os dados mais recentes do serviço.
-     */
     public void atualizarTabela() {
         tableModel.setRowCount(0); // Limpa a tabela
-        List<Contato> contatos = contatoService.listarTodos();
+        List<Contato> contatos = contatoService.listar();
         for (Contato contato : contatos) {
-            tableModel.addRow(new Object[]{contato.getTelefone(), contato.getEmail(), contato.getEndereco()});
+            tableModel.addRow(new Object[]{contato.getId(), contato.getTelefone(), contato.getEmail(), contato.getEndereco()});
         }
     }
 }

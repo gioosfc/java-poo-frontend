@@ -30,7 +30,7 @@ public class PessoaService {
                     new TypeReference<List<Pessoa>>() {}
             );
 
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             return new ArrayList<>();
         }
@@ -40,7 +40,7 @@ public class PessoaService {
         try {
             String jsonResponse = httpClient.get(apiPath + "/" + id);
             return objectMapper.readValue(jsonResponse, Pessoa.class);
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
@@ -59,17 +59,13 @@ public class PessoaService {
 
             return objectMapper.readValue(jsonResponse, Pessoa.class);
 
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
     }
 
     public void deletar(Long id) {
-        try {
-            httpClient.delete(apiPath + "/" + id);
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
+        httpClient.delete(apiPath + "/" + id);
     }
 }

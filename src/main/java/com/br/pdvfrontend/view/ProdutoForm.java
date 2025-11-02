@@ -8,13 +8,14 @@ import java.awt.*;
 public class ProdutoForm extends JDialog {
 
     private JTextField txtNome, txtReferencia, txtMarca, txtCategoria, txtFornecedor;
-    private ProdutoService produtoService = new ProdutoService();
+    private ProdutoService produtoService;
     private Produto produto;
     private ProdutoList parent;
 
-    public ProdutoForm(Produto produto, ProdutoList parent) {
-        this.produto = produto;
+    public ProdutoForm(ProdutoList parent, ProdutoService produtoService, Produto produto) {
         this.parent = parent;
+        this.produtoService = produtoService;
+        this.produto = produto;
 
         setTitle(produto == null ? "Novo Produto" : "Editar Produto");
         setSize(400, 350);

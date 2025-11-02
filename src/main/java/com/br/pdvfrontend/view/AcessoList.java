@@ -1,41 +1,35 @@
 package com.br.pdvfrontend.view;
 
 import com.br.pdvfrontend.model.Acesso;
+import com.br.pdvfrontend.service.AcessoService;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public class AcessoList extends JFrame {
 
-    private final List<Acesso> listaDeAcessos = new ArrayList<>();
+    private final AcessoService acessoService;
     private JTable table;
     private DefaultTableModel tableModel;
 
     public AcessoList() {
-        // Configurações da janela
+        this.acessoService = new AcessoService();
+
         setTitle("Cadastro de Acessos");
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Adiciona dados de exemplo
-        listaDeAcessos.add(new Acesso("admin", "admin123"));
-        listaDeAcessos.add(new Acesso("caixa", "caixa123"));
-
-        // --- Componentes da Tela ---
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Tabela
-        String[] colunas = {"Usuário"};
+        String[] colunas = {"ID", "Usuário"};
         tableModel = new DefaultTableModel(colunas, 0);
         table = new JTable(tableModel);
         mainPanel.add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // Painel de botões
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnNovo = new JButton("Novo");
         JButton btnEditar = new JButton("Editar");
@@ -47,63 +41,42 @@ public class AcessoList extends JFrame {
 
         add(mainPanel);
 
-        // --- Ações dos Botões ---
+        btnNovo.addActionListener(e -> abrirFormulario(null));
 
-        // Ação para o botão "Novo"
-        btnNovo.addActionListener(e -> {
-            // Cria e exibe o formulário para um novo acesso
-            AcessoForm form = new AcessoForm(this, this, null);
-            form.setVisible(true);
-        });
-
-        // Ação para o botão "Editar"
         btnEditar.addActionListener(e -> {
             int selectedRow = table.getSelectedRow();
             if (selectedRow != -1) {
-                // Pega o objeto da lista e o passa para o formulário
-                Acesso acessoParaEditar = listaDeAcessos.get(selectedRow);
-                AcessoForm form = new AcessoForm(this, this, acessoParaEditar);
-                form.setVisible(true);
+                Long id = (Long) tableModel.getValueAt(selectedRow, 0);
+                Acesso acessoParaEditar = acessoService.buscarPorId(id);
+                abrirFormulario(acessoParaEditar);
             } else {
-                JOptionPane.showMessageDialog(this, "Selecione um acesso para editar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Selecione um acesso para editar.");
             }
         });
 
-        // Ação para o botão "Excluir"
         btnExcluir.addActionListener(e -> {
             int selectedRow = table.getSelectedRow();
             if (selectedRow != -1) {
-                int confirm = JOptionPane.showConfirmDialog(this, "Tem certeza?", "Excluir Acesso", JOptionPane.YES_NO_OPTION);
-                if (confirm == JOptionPane.YES_OPTION) {
-                    listaDeAcessos.remove(selectedRow);
-                    atualizarTabela();
-                }
-            } else {
-                JOptionPane.showMessageDialog(this, "Selecione um acesso para excluir.", "Aviso", JOptionPane.WARNING_MESSAGE);
+                Long id = (Long) tableModel.getValueAt(selectedRow, 0);
+                acessoService.deletar(id);
+                atualizarTabela();
             }
         });
 
-        // Carrega os dados iniciais na tabela
         atualizarTabela();
     }
 
-    /**
-     * Atualiza a tabela com os dados da lista em memória.
-     */
+    private void abrirFormulario(Acesso acesso) {
+        AcessoForm form = new AcessoForm(this, acessoService, acesso);
+        form.setVisible(true);
+    }
+
     public void atualizarTabela() {
-        tableModel.setRowCount(0); // Limpa a tabela
-        for (Acesso acesso : listaDeAcessos) {
-            tableModel.addRow(new Object[]{acesso.getUsuario()});
+        List<Acesso> acessos = acessoService.listar();
+        DefaultTableModel model = new DefaultTableModel(new Object[]{"ID", "Usuario", "Senha"}, 0);
+        for (Acesso acesso : acessos) {
+            model.addRow(new Object[]{acesso.getId(), acesso.getUsuario(), acesso.getSenha()});
         }
-    }
-
-    /**
-     * Método para ser chamado pelo formulário para salvar um acesso.
-     */
-    public void salvarAcesso(Acesso acesso) {
-        if (!listaDeAcessos.contains(acesso)) {
-            listaDeAcessos.add(acesso);
-        }
-        atualizarTabela();
+        table.setModel(model);
     }
 }

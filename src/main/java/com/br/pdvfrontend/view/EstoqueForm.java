@@ -5,27 +5,33 @@ import com.br.pdvfrontend.service.EstoqueService;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class EstoqueForm extends JFrame {
+public class EstoqueForm extends JDialog {
+
+    private final EstoqueList ownerList;
+    private final EstoqueService estoqueService;
+    private Estoque estoque; // O objeto sendo editado, ou null se for novo
 
     private JTextField quantidadeField;
     private JTextField localTanqueField;
     private JTextField localEnderecoField;
     private JTextField loteFabricacaoField;
     private JTextField dataDeValidadeField;
-    private JButton salvarButton;
 
-    public EstoqueForm() {
+    public EstoqueForm(Frame owner, EstoqueList ownerList, EstoqueService estoqueService, Estoque estoque) {
+        super(owner, (estoque == null) ? "Novo Estoque" : "Editar Estoque", true);
+        this.ownerList = ownerList;
+        this.estoqueService = estoqueService;
+        this.estoque = estoque;
+
         setTitle("Cadastro de Estoque");
         setSize(400, 350);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLocationRelativeTo(null);
+        setLocationRelativeTo(owner);
 
         JPanel panel = new JPanel(new GridLayout(6, 2, 10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -50,21 +56,27 @@ public class EstoqueForm extends JFrame {
         dataDeValidadeField = new JTextField();
         panel.add(dataDeValidadeField);
 
-        salvarButton = new JButton("Salvar");
-        panel.add(new JLabel()); // empty label for spacing
-        panel.add(salvarButton);
+        JButton btnSalvar = new JButton("Salvar");
+        JButton btnCancelar = new JButton("Cancelar");
+        panel.add(btnSalvar);
+        panel.add(btnCancelar);
 
-        salvarButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                salvarEstoque();
-            }
-        });
+        btnSalvar.addActionListener(e -> onSalvar());
+        btnCancelar.addActionListener(e -> dispose());
 
         add(panel);
+
+        if (estoque != null) {
+            quantidadeField.setText(estoque.getQuantidade().toString());
+            localTanqueField.setText(estoque.getLocalTanque());
+            localEnderecoField.setText(estoque.getLocalEndereco());
+            loteFabricacaoField.setText(estoque.getLoteFabricacao());
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            dataDeValidadeField.setText(sdf.format(estoque.getDataDeValidade()));
+        }
     }
 
-    private void salvarEstoque() {
+    private void onSalvar() {
         try {
             BigDecimal quantidade = new BigDecimal(quantidadeField.getText());
             String localTanque = localTanqueField.getText();
@@ -78,8 +90,19 @@ public class EstoqueForm extends JFrame {
                 return;
             }
 
-            Estoque novoEstoque = new Estoque(quantidade, localEndereco, localTanque, loteFabricacao, dataDeValidade);
-            EstoqueService.getInstance().addEstoque(novoEstoque);
+            if (estoque == null) {
+                estoque = new Estoque();
+            }
+
+            estoque.setQuantidade(quantidade);
+            estoque.setLocalTanque(localTanque);
+            estoque.setLocalEndereco(localEndereco);
+            estoque.setLoteFabricacao(loteFabricacao);
+            estoque.setDataDeValidade(dataDeValidade);
+
+            estoqueService.salvar(estoque);
+
+            ownerList.atualizarTabela();
 
             JOptionPane.showMessageDialog(this, "Estoque salvo com sucesso!");
             dispose(); // Close the form after saving

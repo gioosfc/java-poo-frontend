@@ -5,23 +5,29 @@ import com.br.pdvfrontend.service.CustoService;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Date;
 
-public class CustoForm extends JFrame {
+public class CustoForm extends JDialog {
+
+    private final CustoList ownerList;
+    private final CustoService custoService;
+    private Custos custo; // O objeto sendo editado, ou null se for novo
 
     private JTextField impostoField;
     private JTextField custoVariaveisField;
     private JTextField margemLucroField;
     private JTextField custoFixoField;
-    private JButton salvarButton;
 
-    public CustoForm() {
+    public CustoForm(Frame owner, CustoList ownerList, CustoService custoService, Custos custo) {
+        super(owner, (custo == null) ? "Novo Custo" : "Editar Custo", true);
+        this.ownerList = ownerList;
+        this.custoService = custoService;
+        this.custo = custo;
+
         setTitle("Cadastro de Custo");
         setSize(400, 300);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLocationRelativeTo(null);
+        setLocationRelativeTo(owner);
 
         JPanel panel = new JPanel(new GridLayout(5, 2, 10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -42,21 +48,25 @@ public class CustoForm extends JFrame {
         custoFixoField = new JTextField();
         panel.add(custoFixoField);
 
-        salvarButton = new JButton("Salvar");
-        panel.add(new JLabel()); // empty label for spacing
-        panel.add(salvarButton);
+        JButton btnSalvar = new JButton("Salvar");
+        JButton btnCancelar = new JButton("Cancelar");
+        panel.add(btnSalvar);
+        panel.add(btnCancelar);
 
-        salvarButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                salvarCusto();
-            }
-        });
+        btnSalvar.addActionListener(e -> onSalvar());
+        btnCancelar.addActionListener(e -> dispose());
 
         add(panel);
+
+        if (custo != null) {
+            impostoField.setText(String.valueOf(custo.getImposto()));
+            custoVariaveisField.setText(String.valueOf(custo.getCustoVariaveis()));
+            margemLucroField.setText(String.valueOf(custo.getMargemLucro()));
+            custoFixoField.setText(String.valueOf(custo.getCustoFixo()));
+        }
     }
 
-    private void salvarCusto() {
+    private void onSalvar() {
         try {
             double imposto = Double.parseDouble(impostoField.getText());
             double custoVariaveis = Double.parseDouble(custoVariaveisField.getText());
@@ -64,8 +74,19 @@ public class CustoForm extends JFrame {
             double custoFixo = Double.parseDouble(custoFixoField.getText());
             Date dataProcessamento = new Date(); // Using current date for simplicity
 
-            Custos novoCusto = new Custos(imposto, custoFixo, custoVariaveis, margemLucro, dataProcessamento);
-            CustoService.getInstance().addCusto(novoCusto);
+            if (custo == null) {
+                custo = new Custos();
+            }
+
+            custo.setImposto(imposto);
+            custo.setCustoVariaveis(custoVariaveis);
+            custo.setMargemLucro(margemLucro);
+            custo.setCustoFixo(custoFixo);
+            custo.setDataProcessamento(dataProcessamento);
+
+            custoService.salvar(custo);
+
+            ownerList.atualizarTabela();
 
             JOptionPane.showMessageDialog(this, "Custo salvo com sucesso!");
             dispose(); // Close the form after saving

@@ -1,53 +1,69 @@
 package com.br.pdvfrontend.service;
 
 import com.br.pdvfrontend.model.Produto;
+import com.br.pdvfrontend.util.HttpClient;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class ProdutoService {
 
-    private static final List<Produto> mockProdutos = new ArrayList<>();
-    private static final AtomicLong idCounter = new AtomicLong(4);
+    private final HttpClient httpClient = new HttpClient();
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .findAndRegisterModules()
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-    static {
-        mockProdutos.add(new Produto(1L, "Notebook Gamer", "NTK-GMR-001", "Marca X", "Informática", "Fornecedor A"));
-        mockProdutos.add(new Produto(2L, "Mouse Sem Fio", "MSE-SF-345", "Marca Y", "Periféricos", "Fornecedor B"));
-        mockProdutos.add(new Produto(3L, "Teclado Mecânico", "TCL-MEC-RGB", "Marca Z", "Periféricos", "Fornecedor A"));
-    }
+    private final String apiPath = "/produtos";
 
     public List<Produto> listar() {
-        return new ArrayList<>(mockProdutos);
+        try {
+            String jsonResponse = httpClient.get(apiPath + "/all");
+
+            return objectMapper.readValue(
+                    jsonResponse,
+                    new TypeReference<List<Produto>>() {}
+            );
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
     }
 
     public Produto buscarPorId(Long id) {
-        return mockProdutos.stream()
-                .filter(p -> p.getId().equals(id))
-                .findFirst()
-                .orElse(null);
+        try {
+            String jsonResponse = httpClient.get(apiPath + "/" + id);
+            return objectMapper.readValue(jsonResponse, Produto.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public Produto salvar(Produto produto) {
-        if (produto.getId() == null) { // Novo cadastro
-            produto.setId(idCounter.getAndIncrement());
-            mockProdutos.add(produto);
-        } else { // Atualização
-            atualizar(produto);
-        }
-        return produto;
-    }
+        try {
+            String jsonInput = objectMapper.writeValueAsString(produto);
+            String jsonResponse;
 
-    public void atualizar(Produto produto) {
-        for (int i = 0; i < mockProdutos.size(); i++) {
-            if (Objects.equals(mockProdutos.get(i).getId(), produto.getId())) {
-                mockProdutos.set(i, produto);
-                return;
+            if (produto.getId() == null) {
+                jsonResponse = httpClient.post(apiPath, jsonInput);
+            } else {
+                jsonResponse = httpClient.put(apiPath + "/" + produto.getId(), jsonInput);
             }
+
+            return objectMapper.readValue(jsonResponse, Produto.class);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 
     public void deletar(Long id) {
-        mockProdutos.removeIf(p -> p.getId().equals(id));
+        httpClient.delete(apiPath + "/" + id);
     }
 }

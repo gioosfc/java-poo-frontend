@@ -1,37 +1,69 @@
 package com.br.pdvfrontend.service;
 
 import com.br.pdvfrontend.model.Custos;
+import com.br.pdvfrontend.util.HttpClient;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CustoService {
 
-    private static CustoService instance;
-    private final List<Custos> custos;
+    private final HttpClient httpClient = new HttpClient();
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .findAndRegisterModules()
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-    private CustoService() {
-        custos = new ArrayList<>();
-    }
+    private final String apiPath = "/custos";
 
-    public static synchronized CustoService getInstance() {
-        if (instance == null) {
-            instance = new CustoService();
+    public List<Custos> listar() {
+        try {
+            String jsonResponse = httpClient.get(apiPath + "/all");
+
+            return objectMapper.readValue(
+                    jsonResponse,
+                    new TypeReference<List<Custos>>() {}
+            );
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new ArrayList<>();
         }
-        return instance;
     }
 
-    public void addCusto(Custos custo) {
-        custos.add(custo);
-    }
-
-    public List<Custos> getCustos() {
-        return custos;
-    }
-
-    public Custos getCusto(int index) {
-        if (index >= 0 && index < custos.size()) {
-            return custos.get(index);
+    public Custos buscarPorId(Long id) {
+        try {
+            String jsonResponse = httpClient.get(apiPath + "/" + id);
+            return objectMapper.readValue(jsonResponse, Custos.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
         }
-        return null;
+    }
+
+    public Custos salvar(Custos custo) {
+        try {
+            String jsonInput = objectMapper.writeValueAsString(custo);
+            String jsonResponse;
+
+            if (custo.getId() == null) {
+                jsonResponse = httpClient.post(apiPath, jsonInput);
+            } else {
+                jsonResponse = httpClient.put(apiPath + "/" + custo.getId(), jsonInput);
+            }
+
+            return objectMapper.readValue(jsonResponse, Custos.class);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public void deletar(Long id) {
+        httpClient.delete(apiPath + "/" + id);
     }
 }

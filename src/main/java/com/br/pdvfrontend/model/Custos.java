@@ -1,9 +1,13 @@
 package com.br.pdvfrontend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.Date;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Custos {
     //atributos
+    private Long id;
     private double imposto;
     private double custoVariaveis;
     private Date dataProcessamento;
@@ -11,6 +15,9 @@ public class Custos {
     private double custoFixo;
 
     //construtor
+    public Custos() {
+    }
+
     public Custos (double imposto, double custoFixo, double custoVariaveis, double margemLucro, Date dataProcessamento){
         this.custoFixo = custoFixo;
         this.custoVariaveis = custoVariaveis;
@@ -20,6 +27,10 @@ public class Custos {
     }
 
     //getters
+    public Long getId() {
+        return id;
+    }
+
     public Date getDataProcessamento() {
         return dataProcessamento;
     }
@@ -41,6 +52,10 @@ public class Custos {
     }
 
     //setters
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public void setCustoFixo(double custoFixo) {
         this.custoFixo = custoFixo;
     }
@@ -61,5 +76,3 @@ public class Custos {
         this.margemLucro = margemLucro;
     }
 }
-
-

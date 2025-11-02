@@ -6,36 +6,37 @@ import com.br.pdvfrontend.service.EstoqueService;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class EstoqueList extends JFrame {
 
+    private final EstoqueService estoqueService;
     private JTable table;
     private DefaultTableModel tableModel;
-    private JButton novoButton;
-    private JButton atualizarButton;
 
     public EstoqueList() {
+        this.estoqueService = new EstoqueService();
+
         setTitle("Lista de Estoque");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Table
-        String[] columnNames = {"Quantidade", "Local Tanque", "Local Endereço", "Lote Fabricação", "Data de Validade"};
+        // Tabela
+        String[] columnNames = {"ID", "Quantidade", "Local Tanque", "Local Endereço", "Lote Fabricação", "Data de Validade"};
         tableModel = new DefaultTableModel(columnNames, 0);
         table = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(table);
 
-        // Buttons
-        JPanel buttonPanel = new JPanel();
-        novoButton = new JButton("Novo Estoque");
-        atualizarButton = new JButton("Atualizar");
-        buttonPanel.add(novoButton);
-        buttonPanel.add(atualizarButton);
+        // Painel de botões
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton btnNovo = new JButton("Novo");
+        JButton btnEditar = new JButton("Editar");
+        JButton btnExcluir = new JButton("Excluir");
+        buttonPanel.add(btnNovo);
+        buttonPanel.add(btnEditar);
+        buttonPanel.add(btnExcluir);
 
         // Layout
         Container contentPane = getContentPane();
@@ -43,37 +44,51 @@ public class EstoqueList extends JFrame {
         contentPane.add(scrollPane, BorderLayout.CENTER);
         contentPane.add(buttonPanel, BorderLayout.SOUTH);
 
-        // Actions
-        novoButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                EstoqueForm estoqueForm = new EstoqueForm();
-                estoqueForm.setVisible(true);
+        // Ações
+        btnNovo.addActionListener(e -> abrirFormulario(null));
+
+        btnEditar.addActionListener(e -> {
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow != -1) {
+                Long id = (Long) tableModel.getValueAt(selectedRow, 0);
+                Estoque estoqueParaEditar = estoqueService.buscarPorId(id);
+                abrirFormulario(estoqueParaEditar);
+            } else {
+                JOptionPane.showMessageDialog(this, "Selecione um estoque para editar.", "Aviso", JOptionPane.WARNING_MESSAGE);
             }
         });
 
-        atualizarButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                atualizarTabela();
+        btnExcluir.addActionListener(e -> {
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow != -1) {
+                int confirm = JOptionPane.showConfirmDialog(this, "Tem certeza que deseja excluir?", "Excluir Estoque", JOptionPane.YES_NO_OPTION);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    Long id = (Long) tableModel.getValueAt(selectedRow, 0);
+                    estoqueService.deletar(id);
+                    atualizarTabela();
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Selecione um estoque para excluir.", "Aviso", JOptionPane.WARNING_MESSAGE);
             }
         });
 
-        // Initial data load
+        // Carrega os dados iniciais
         atualizarTabela();
     }
 
-    private void atualizarTabela() {
-        // Clear existing data
-        tableModel.setRowCount(0);
+    private void abrirFormulario(Estoque estoque) {
+        EstoqueForm form = new EstoqueForm(this, this, estoqueService, estoque);
+        form.setVisible(true);
+    }
 
-        // Get data from service
-        List<Estoque> estoques = EstoqueService.getInstance().getEstoques();
+    public void atualizarTabela() {
+        tableModel.setRowCount(0); // Limpa a tabela
+        List<Estoque> estoques = estoqueService.listar();
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
-        // Populate table
         for (Estoque estoque : estoques) {
             Object[] rowData = {
+                    estoque.getId(),
                     estoque.getQuantidade(),
                     estoque.getLocalTanque(),
                     estoque.getLocalEndereco(),
