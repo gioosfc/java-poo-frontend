@@ -8,14 +8,14 @@ import java.awt.*;
 
 public class AcessoForm extends JDialog {
 
-    private AcessoList listScreen = null;
+    private AcessoList listScreen;
     private final AcessoService service;
     private Acesso acesso;
 
     private JTextField txtUsuario;
     private JPasswordField txtSenha;
 
-    public AcessoForm(Frame owner, AcessoService service, Acesso acesso) {
+    public AcessoForm(Frame owner, AcessoService service, Acesso acesso, AcessoList listScreen) {
         super(owner, "Cadastro de Acesso", true);
         this.listScreen = listScreen;
         this.service = service;

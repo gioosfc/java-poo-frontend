@@ -18,7 +18,7 @@ public class PessoaService {
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); // usa "yyyy-MM-dd"
 
     // ✅ Ponto base da API
-    private final String apiPath = "/pessoas";
+    private final String apiPath = "pessoas";
 
     public List<Pessoa> listar() {
         try {
