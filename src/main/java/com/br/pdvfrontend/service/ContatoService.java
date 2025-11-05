@@ -17,11 +17,12 @@ public class ContatoService {
             .findAndRegisterModules()
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-    private final String apiPath = "/contato";
+    private final String apiPath = "contato";
 
+    // ---------------- LISTAR ----------------
     public List<Contato> listar() {
         try {
-            String jsonResponse = httpClient.get(apiPath + "/all");
+            String jsonResponse = httpClient.get(apiPath);
 
             return objectMapper.readValue(
                     jsonResponse,
@@ -34,6 +35,7 @@ public class ContatoService {
         }
     }
 
+    // ---------------- BUSCAR POR ID ----------------
     public Contato buscarPorId(Long id) {
         try {
             String jsonResponse = httpClient.get(apiPath + "/" + id);
@@ -44,17 +46,27 @@ public class ContatoService {
         }
     }
 
+    // ---------------- SALVAR (POST / PUT) ----------------
     public Contato salvar(Contato contato) {
         try {
             String jsonInput = objectMapper.writeValueAsString(contato);
             String jsonResponse;
 
+            // Criar
             if (contato.getId() == null) {
                 jsonResponse = httpClient.post(apiPath, jsonInput);
+
+                // Atualizar
             } else {
                 jsonResponse = httpClient.put(apiPath + "/" + contato.getId(), jsonInput);
             }
 
+            // 🔥 Backend não retorna nada → apenas confirma
+            if (jsonResponse == null || jsonResponse.isBlank()) {
+                return contato;
+            }
+
+            // Caso o backend passe a retornar JSON, já estamos prontos
             return objectMapper.readValue(jsonResponse, Contato.class);
 
         } catch (IOException e) {
@@ -63,15 +75,8 @@ public class ContatoService {
         }
     }
 
-    //public void deletar(Long id) {
-        //try {
-            //httpClient.delete(apiPath + "/" + id);
-        }//catch (InterruptedException e) {
-           // e.printStackTrace();
-       // }
-    //}
-
-    //public List<Object> listarTodos() {
-      //  return null;
-    //}
-//}
+    // ---------------- DELETAR ----------------
+    public void deletar(Long id) {
+        httpClient.delete(apiPath + "/" + id);
+    }
+}

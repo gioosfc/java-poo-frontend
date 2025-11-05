@@ -18,6 +18,7 @@ public class CustoForm extends JDialog {
     private JTextField margemLucroField;
     private JTextField custoFixoField;
 
+
     public CustoForm(Frame owner, CustoList ownerList, CustoService custoService, Custos custo) {
         super(owner, (custo == null) ? "Novo Custo" : "Editar Custo", true);
         this.ownerList = ownerList;

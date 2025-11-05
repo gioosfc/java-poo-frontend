@@ -14,6 +14,7 @@ public class ContatoList extends JFrame {
     private JTable table;
     private DefaultTableModel tableModel;
 
+
     public ContatoList() {
         this.contatoService = new ContatoService();
 
@@ -28,7 +29,7 @@ public class ContatoList extends JFrame {
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // Tabela
-        String[] colunas = {"ID", "Telefone", "Email", "Endereço"};
+        String[] colunas = {"ID", "Nome", "Telefone", "Email", "Endereço"};
         tableModel = new DefaultTableModel(colunas, 0);
         table = new JTable(tableModel);
         mainPanel.add(new JScrollPane(table), BorderLayout.CENTER);
@@ -83,10 +84,23 @@ public class ContatoList extends JFrame {
     }
 
     public void atualizarTabela() {
-        tableModel.setRowCount(0); // Limpa a tabela
+
         List<Contato> contatos = contatoService.listar();
-        for (Contato contato : contatos) {
-            tableModel.addRow(new Object[]{contato.getId(), contato.getTelefone(), contato.getEmail(), contato.getEndereco()});
+        tableModel.setRowCount(0);
+
+        for (Contato c : contatos) {
+
+            if (c == null) continue; // segurança absoluta
+
+            tableModel.addRow(new Object[]{
+                    c.getId(),
+                    c.getNome(),
+                    c.getTelefone(),
+                    c.getEmail(),
+                    c.getEndereco()
+            });
         }
     }
-}
+
+
+        }
