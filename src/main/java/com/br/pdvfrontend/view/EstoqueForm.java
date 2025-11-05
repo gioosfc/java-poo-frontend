@@ -1,115 +1,139 @@
 package com.br.pdvfrontend.view;
 
 import com.br.pdvfrontend.model.Estoque;
+import com.br.pdvfrontend.model.Produto;
 import com.br.pdvfrontend.service.EstoqueService;
+import com.br.pdvfrontend.service.ProdutoService;
 
 import javax.swing.*;
 import java.awt.*;
 import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.List;
 
 public class EstoqueForm extends JDialog {
 
     private final EstoqueList ownerList;
     private final EstoqueService estoqueService;
-    private Estoque estoque; // O objeto sendo editado, ou null se for novo
+    private final ProdutoService produtoService;
 
-    private JTextField quantidadeField;
-    private JTextField localTanqueField;
-    private JTextField localEnderecoField;
-    private JTextField loteFabricacaoField;
-    private JTextField dataDeValidadeField;
+    private Estoque estoque; // nulo para novo
 
-    public EstoqueForm(Frame owner, EstoqueList ownerList, EstoqueService estoqueService, Estoque estoque) {
-        super(owner, (estoque == null) ? "Novo Estoque" : "Editar Estoque", true);
+    private JComboBox<ProdutoItem> cbProduto;
+    private JSpinner spQuantidade;
+
+    public EstoqueForm(Frame owner, EstoqueList ownerList, EstoqueService estoqueService, ProdutoService produtoService, Estoque estoque) {
         this.ownerList = ownerList;
         this.estoqueService = estoqueService;
+        this.produtoService = produtoService;
         this.estoque = estoque;
 
-        setTitle("Cadastro de Estoque");
-        setSize(400, 350);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setTitle(estoque == null ? "Novo Estoque" : "Editar Estoque");
+        setSize(420, 200);
         setLocationRelativeTo(owner);
+        setLayout(new BorderLayout(10, 10));
 
-        JPanel panel = new JPanel(new GridLayout(6, 2, 10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(6, 6, 6, 6);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        panel.add(new JLabel("Quantidade:"));
-        quantidadeField = new JTextField();
-        panel.add(quantidadeField);
+        // Produto
+        gbc.gridx = 0; gbc.gridy = 0;
+        form.add(new JLabel("Produto:"), gbc);
+        gbc.gridx = 1;
+        cbProduto = new JComboBox<>();
+        carregarProdutos();
+        form.add(cbProduto, gbc);
 
-        panel.add(new JLabel("Local Tanque:"));
-        localTanqueField = new JTextField();
-        panel.add(localTanqueField);
+        // Quantidade
+        gbc.gridx = 0; gbc.gridy = 1;
+        form.add(new JLabel("Quantidade:"), gbc);
+        gbc.gridx = 1;
+        spQuantidade = new JSpinner(new SpinnerNumberModel(0.00, 0.00, 9999999.99, 0.50));
+        form.add(spQuantidade, gbc);
 
-        panel.add(new JLabel("Local Endereço:"));
-        localEnderecoField = new JTextField();
-        panel.add(localEnderecoField);
-
-        panel.add(new JLabel("Lote de Fabricação:"));
-        loteFabricacaoField = new JTextField();
-        panel.add(loteFabricacaoField);
-
-        panel.add(new JLabel("Data de Validade (dd/MM/yyyy):"));
-        dataDeValidadeField = new JTextField();
-        panel.add(dataDeValidadeField);
-
+        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnSalvar = new JButton("Salvar");
         JButton btnCancelar = new JButton("Cancelar");
-        panel.add(btnSalvar);
-        panel.add(btnCancelar);
+        buttons.add(btnSalvar);
+        buttons.add(btnCancelar);
+
+        add(form, BorderLayout.CENTER);
+        add(buttons, BorderLayout.SOUTH);
 
         btnSalvar.addActionListener(e -> onSalvar());
         btnCancelar.addActionListener(e -> dispose());
 
-        add(panel);
-
         if (estoque != null) {
-            quantidadeField.setText(estoque.getQuantidade().toString());
-            localTanqueField.setText(estoque.getLocalTanque());
-            localEnderecoField.setText(estoque.getLocalEndereco());
-            loteFabricacaoField.setText(estoque.getLoteFabricacao());
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-            dataDeValidadeField.setText(sdf.format(estoque.getDataDeValidade()));
+            carregarDados();
+        }
+    }
+
+    private void carregarProdutos() {
+        List<Produto> produtos = produtoService.listarTodos();
+        cbProduto.removeAllItems();
+        for (Produto p : produtos) {
+            cbProduto.addItem(new ProdutoItem(p.getId(), p.getNome(), p.getReferencia()));
+        }
+    }
+
+    private void carregarDados() {
+        // selecionar produto atual
+        if (estoque.getProdutoId() != null) {
+            for (int i = 0; i < cbProduto.getItemCount(); i++) {
+                ProdutoItem it = cbProduto.getItemAt(i);
+                if (it.id.equals(estoque.getProdutoId())) {
+                    cbProduto.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
+        if (estoque.getQuantidade() != null) {
+            spQuantidade.setValue(estoque.getQuantidade().doubleValue());
         }
     }
 
     private void onSalvar() {
-        try {
-            BigDecimal quantidade = new BigDecimal(quantidadeField.getText());
-            String localTanque = localTanqueField.getText();
-            String localEndereco = localEnderecoField.getText();
-            String loteFabricacao = loteFabricacaoField.getText();
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-            Date dataDeValidade = sdf.parse(dataDeValidadeField.getText());
+        ProdutoItem item = (ProdutoItem) cbProduto.getSelectedItem();
+        if (item == null) {
+            JOptionPane.showMessageDialog(this, "Selecione um produto.", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-            if (localTanque.isEmpty() || localEndereco.isEmpty() || loteFabricacao.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Todos os campos são obrigatórios.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+        double qtdDouble = (double) spQuantidade.getValue();
+        BigDecimal qtd = BigDecimal.valueOf(qtdDouble);
 
-            if (estoque == null) {
-                estoque = new Estoque();
-            }
+        if (estoque == null) estoque = new Estoque();
+        estoque.setProdutoId(item.id);
+        estoque.setQuantidade(qtd);
 
-            estoque.setQuantidade(quantidade);
-            estoque.setLocalTanque(localTanque);
-            estoque.setLocalEndereco(localEndereco);
-            estoque.setLoteFabricacao(loteFabricacao);
-            estoque.setDataDeValidade(dataDeValidade);
+        Estoque salvo = estoqueService.salvar(estoque);
+        if (salvo == null) {
+            JOptionPane.showMessageDialog(this, "Não foi possível salvar. Verifique se já existe estoque para esse produto.", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-            estoqueService.salvar(estoque);
+        ownerList.atualizarTabela();
+        JOptionPane.showMessageDialog(this, "Estoque salvo com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+        dispose();
+    }
 
-            ownerList.atualizarTabela();
+    private static class ProdutoItem {
+        Long id;
+        String nome;
+        String referencia;
 
-            JOptionPane.showMessageDialog(this, "Estoque salvo com sucesso!");
-            dispose(); // Close the form after saving
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Por favor, insira uma quantidade numérica válida.", "Erro de Formato", JOptionPane.ERROR_MESSAGE);
-        } catch (ParseException ex) {
-            JOptionPane.showMessageDialog(this, "Por favor, insira a data no formato dd/MM/yyyy.", "Erro de Formato da Data", JOptionPane.ERROR_MESSAGE);
+        ProdutoItem(Long id, String nome, String referencia) {
+            this.id = id;
+            this.nome = nome;
+            this.referencia = referencia;
+        }
+
+        @Override
+        public String toString() {
+            // label amigável no combo
+            return nome + " (" + referencia + ")";
         }
     }
 }

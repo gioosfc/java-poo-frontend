@@ -2,100 +2,94 @@ package com.br.pdvfrontend.view;
 
 import com.br.pdvfrontend.model.Estoque;
 import com.br.pdvfrontend.service.EstoqueService;
+import com.br.pdvfrontend.service.ProdutoService;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class EstoqueList extends JFrame {
 
     private final EstoqueService estoqueService;
+    private final ProdutoService produtoService;
+
     private JTable table;
-    private DefaultTableModel tableModel;
+    private DefaultTableModel model;
 
     public EstoqueList() {
         this.estoqueService = new EstoqueService();
+        this.produtoService = new ProdutoService();
 
-        setTitle("Lista de Estoque");
-        setSize(800, 600);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setTitle("Estoque");
+        setSize(800, 400);
         setLocationRelativeTo(null);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
-        // Tabela
-        String[] columnNames = {"ID", "Quantidade", "Local Tanque", "Local Endereço", "Lote Fabricação", "Data de Validade"};
-        tableModel = new DefaultTableModel(columnNames, 0);
-        table = new JTable(tableModel);
-        JScrollPane scrollPane = new JScrollPane(table);
+        JPanel main = new JPanel(new BorderLayout(10, 10));
+        main.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
 
-        // Painel de botões
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        model = new DefaultTableModel(new String[]{"ID","Produto","Referência","Quantidade"}, 0) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        };
+        table = new JTable(model);
+        main.add(new JScrollPane(table), BorderLayout.CENTER);
+
+        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnNovo = new JButton("Novo");
         JButton btnEditar = new JButton("Editar");
         JButton btnExcluir = new JButton("Excluir");
-        buttonPanel.add(btnNovo);
-        buttonPanel.add(btnEditar);
-        buttonPanel.add(btnExcluir);
+        buttons.add(btnNovo); buttons.add(btnEditar); buttons.add(btnExcluir);
 
-        // Layout
-        Container contentPane = getContentPane();
-        contentPane.setLayout(new BorderLayout());
-        contentPane.add(scrollPane, BorderLayout.CENTER);
-        contentPane.add(buttonPanel, BorderLayout.SOUTH);
-
-        // Ações
-        btnNovo.addActionListener(e -> abrirFormulario(null));
+        btnNovo.addActionListener(e -> abrirForm(null));
 
         btnEditar.addActionListener(e -> {
-            int selectedRow = table.getSelectedRow();
-            if (selectedRow != -1) {
-                Long id = (Long) tableModel.getValueAt(selectedRow, 0);
-                Estoque estoqueParaEditar = estoqueService.buscarPorId(id);
-                abrirFormulario(estoqueParaEditar);
-            } else {
-                JOptionPane.showMessageDialog(this, "Selecione um estoque para editar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            int row = table.getSelectedRow();
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Selecione um estoque.", "Aviso", JOptionPane.WARNING_MESSAGE);
+                return;
             }
+            Long id = (Long) model.getValueAt(row, 0);
+            Estoque est = estoqueService.buscarPorId(id);
+            abrirForm(est);
         });
 
         btnExcluir.addActionListener(e -> {
-            int selectedRow = table.getSelectedRow();
-            if (selectedRow != -1) {
-                int confirm = JOptionPane.showConfirmDialog(this, "Tem certeza que deseja excluir?", "Excluir Estoque", JOptionPane.YES_NO_OPTION);
-                if (confirm == JOptionPane.YES_OPTION) {
-                    Long id = (Long) tableModel.getValueAt(selectedRow, 0);
-                    estoqueService.deletar(id);
-                    atualizarTabela();
-                }
-            } else {
-                JOptionPane.showMessageDialog(this, "Selecione um estoque para excluir.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            int row = table.getSelectedRow();
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Selecione um estoque.", "Aviso", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            Long id = (Long) model.getValueAt(row, 0);
+            int confirm = JOptionPane.showConfirmDialog(this, "Excluir o registro?", "Confirmação", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                estoqueService.deletar(id);
+                atualizarTabela();
             }
         });
 
-        // Carrega os dados iniciais
+        main.add(buttons, BorderLayout.SOUTH);
+        setContentPane(main);
+
         atualizarTabela();
     }
 
-    private void abrirFormulario(Estoque estoque) {
-        EstoqueForm form = new EstoqueForm(this, this, estoqueService, estoque);
+    private void abrirForm(Estoque estoque) {
+        EstoqueForm form = new EstoqueForm(this, this, estoqueService, produtoService, estoque);
         form.setVisible(true);
     }
 
     public void atualizarTabela() {
-        tableModel.setRowCount(0); // Limpa a tabela
-        List<Estoque> estoques = estoqueService.listar();
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-
-        for (Estoque estoque : estoques) {
-            Object[] rowData = {
-                    estoque.getId(),
-                    estoque.getQuantidade(),
-                    estoque.getLocalTanque(),
-                    estoque.getLocalEndereco(),
-                    estoque.getLoteFabricacao(),
-                    sdf.format(estoque.getDataDeValidade())
-            };
-            tableModel.addRow(rowData);
+        List<Estoque> lista = estoqueService.listar();
+        model.setRowCount(0);
+        for (Estoque e : lista) {
+            if (e == null) continue;
+            model.addRow(new Object[]{
+                    e.getId(),
+                    e.getProdutoNome(),
+                    e.getProdutoReferencia(),
+                    e.getQuantidade()
+            });
         }
     }
 }

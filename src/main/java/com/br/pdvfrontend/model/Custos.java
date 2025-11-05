@@ -1,78 +1,74 @@
 package com.br.pdvfrontend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import java.util.Date;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Custos {
-    //atributos
+
     private Long id;
+    private Long produtoId;
     private double imposto;
     private double custoVariaveis;
-    private Date dataProcessamento;
     private double margemLucro;
     private double custoFixo;
+    private Date dataProcessamento;
 
-    //construtor
-    public Custos() {
-    }
+    public Custos() {}
 
-    public Custos (double imposto, double custoFixo, double custoVariaveis, double margemLucro, Date dataProcessamento){
-        this.custoFixo = custoFixo;
-        this.custoVariaveis = custoVariaveis;
-        this.imposto = imposto;
-        this.margemLucro = margemLucro;
-        this.dataProcessamento = dataProcessamento;
-    }
-
-    //getters
     public Long getId() {
         return id;
     }
 
-    public Date getDataProcessamento() {
-        return dataProcessamento;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public double getCustoFixo() {
-        return custoFixo;
+    public Long getProdutoId() {
+        return produtoId;
     }
 
-    public double getCustoVariaveis() {
-        return custoVariaveis;
+    public void setProdutoId(Long produtoId) {
+        this.produtoId = produtoId;
     }
 
     public double getImposto() {
         return imposto;
     }
 
-    public double getMargemLucro() {
-        return margemLucro;
+    public void setImposto(double imposto) {
+        this.imposto = imposto;
     }
 
-    //setters
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setCustoFixo(double custoFixo) {
-        this.custoFixo = custoFixo;
+    public double getCustoVariaveis() {
+        return custoVariaveis;
     }
 
     public void setCustoVariaveis(double custoVariaveis) {
         this.custoVariaveis = custoVariaveis;
     }
 
-    public void setDataProcessamento(Date dataProcessamento) {
-        this.dataProcessamento = dataProcessamento;
-    }
-
-    public void setImposto(double imposto) {
-        this.imposto = imposto;
+    public double getMargemLucro() {
+        return margemLucro;
     }
 
     public void setMargemLucro(double margemLucro) {
         this.margemLucro = margemLucro;
+    }
+
+    public double getCustoFixo() {
+        return custoFixo;
+    }
+
+    public void setCustoFixo(double custoFixo) {
+        this.custoFixo = custoFixo;
+    }
+
+    public Date getDataProcessamento() {
+        return dataProcessamento;
+    }
+
+    public void setDataProcessamento(Date dataProcessamento) {
+        this.dataProcessamento = dataProcessamento;
     }
 }

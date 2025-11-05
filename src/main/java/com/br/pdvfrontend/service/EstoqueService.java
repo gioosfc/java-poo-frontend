@@ -13,21 +13,16 @@ import java.util.List;
 public class EstoqueService {
 
     private final HttpClient httpClient = new HttpClient();
-    private final ObjectMapper objectMapper = new ObjectMapper()
+    private final ObjectMapper mapper = new ObjectMapper()
             .findAndRegisterModules()
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-    private final String apiPath = "/estoques";
+    private final String apiPath = "estoques";
 
     public List<Estoque> listar() {
         try {
-            String jsonResponse = httpClient.get(apiPath + "/all");
-
-            return objectMapper.readValue(
-                    jsonResponse,
-                    new TypeReference<List<Estoque>>() {}
-            );
-
+            String json = httpClient.get(apiPath + "/all"); // facilita no Swing
+            return mapper.readValue(json, new TypeReference<List<Estoque>>() {});
         } catch (IOException e) {
             e.printStackTrace();
             return new ArrayList<>();
@@ -36,29 +31,27 @@ public class EstoqueService {
 
     public Estoque buscarPorId(Long id) {
         try {
-            String jsonResponse = httpClient.get(apiPath + "/" + id);
-            return objectMapper.readValue(jsonResponse, Estoque.class);
+            String json = httpClient.get(apiPath + "/" + id);
+            return mapper.readValue(json, Estoque.class);
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
     }
 
-    public Estoque salvar(Estoque estoque) {
+    public Estoque salvar(Estoque e) {
         try {
-            String jsonInput = objectMapper.writeValueAsString(estoque);
-            String jsonResponse;
-
-            if (estoque.getId() == null) {
-                jsonResponse = httpClient.post(apiPath, jsonInput);
+            String payload = mapper.writeValueAsString(e);
+            String json;
+            if (e.getId() == null) {
+                json = httpClient.post(apiPath, payload);
             } else {
-                jsonResponse = httpClient.put(apiPath + "/" + estoque.getId(), jsonInput);
+                json = httpClient.put(apiPath + "/" + e.getId(), payload);
             }
-
-            return objectMapper.readValue(jsonResponse, Estoque.class);
-
-        } catch (IOException e) {
-            e.printStackTrace();
+            if (json == null || json.isBlank()) return null;
+            return mapper.readValue(json, Estoque.class);
+        } catch (IOException ex) {
+            ex.printStackTrace();
             return null;
         }
     }

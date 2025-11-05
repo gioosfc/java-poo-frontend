@@ -17,7 +17,7 @@ public class CustoService {
             .findAndRegisterModules()
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-    private final String apiPath = "/custos";
+    private final String apiPath = "custos";
 
     public List<Custos> listar() {
         try {

@@ -13,21 +13,32 @@ import java.util.List;
 public class ProdutoService {
 
     private final HttpClient httpClient = new HttpClient();
-    private final ObjectMapper objectMapper = new ObjectMapper()
+    private final ObjectMapper mapper = new ObjectMapper()
             .findAndRegisterModules()
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-    private final String apiPath = "/produtos";
+    private final String apiPath = "produtos";
 
+    /**
+     * ✅ Usado pela tela de ProdutoList (paginado manualmente via /all)
+     */
     public List<Produto> listar() {
         try {
-            String jsonResponse = httpClient.get(apiPath + "/all");
+            String json = httpClient.get(apiPath + "/all");
+            return mapper.readValue(json, new TypeReference<List<Produto>>() {});
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
 
-            return objectMapper.readValue(
-                    jsonResponse,
-                    new TypeReference<List<Produto>>() {}
-            );
-
+    /**
+     * ✅ Usado pelo EstoqueForm (combobox de produtos)
+     */
+    public List<Produto> listarTodos() {
+        try {
+            String json = httpClient.get(apiPath + "/all");
+            return mapper.readValue(json, new TypeReference<List<Produto>>() {});
         } catch (IOException e) {
             e.printStackTrace();
             return new ArrayList<>();
@@ -36,8 +47,8 @@ public class ProdutoService {
 
     public Produto buscarPorId(Long id) {
         try {
-            String jsonResponse = httpClient.get(apiPath + "/" + id);
-            return objectMapper.readValue(jsonResponse, Produto.class);
+            String json = httpClient.get(apiPath + "/" + id);
+            return mapper.readValue(json, Produto.class);
         } catch (IOException e) {
             e.printStackTrace();
             return null;
@@ -46,7 +57,7 @@ public class ProdutoService {
 
     public Produto salvar(Produto produto) {
         try {
-            String jsonInput = objectMapper.writeValueAsString(produto);
+            String jsonInput = mapper.writeValueAsString(produto);
             String jsonResponse;
 
             if (produto.getId() == null) {
@@ -55,7 +66,7 @@ public class ProdutoService {
                 jsonResponse = httpClient.put(apiPath + "/" + produto.getId(), jsonInput);
             }
 
-            return objectMapper.readValue(jsonResponse, Produto.class);
+            return mapper.readValue(jsonResponse, Produto.class);
 
         } catch (IOException e) {
             e.printStackTrace();
