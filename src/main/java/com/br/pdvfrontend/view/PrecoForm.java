@@ -1,7 +1,9 @@
 package com.br.pdvfrontend.view;
 
 import com.br.pdvfrontend.model.Preco;
+import com.br.pdvfrontend.model.Produto;
 import com.br.pdvfrontend.service.PrecoService;
+import com.br.pdvfrontend.service.ProdutoService;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,8 +14,10 @@ public class PrecoForm extends JDialog {
 
     private final PrecoList ownerList;
     private final PrecoService precoService;
-    private Preco preco; // O objeto sendo editado, ou null se for novo
+    private final ProdutoService produtoService = new ProdutoService();
+    private Preco preco;
 
+    private JComboBox<Produto> produtoCombo;
     private JTextField valorField;
 
     public PrecoForm(Frame owner, PrecoList ownerList, PrecoService precoService, Preco preco) {
@@ -23,14 +27,19 @@ public class PrecoForm extends JDialog {
         this.preco = preco;
 
         setTitle("Cadastro de Preço");
-        setSize(400, 150);
+        setSize(450, 200);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(owner);
 
-        JPanel panel = new JPanel(new GridLayout(2, 2, 10, 10));
+        JPanel panel = new JPanel(new GridLayout(3, 2, 10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        panel.add(new JLabel("Valor:"));
+        panel.add(new JLabel("Produto:"));
+        produtoCombo = new JComboBox<>();
+        for (Produto p : produtoService.listar()) produtoCombo.addItem(p);
+        panel.add(produtoCombo);
+
+        panel.add(new JLabel("Valor Venda:"));
         valorField = new JTextField();
         panel.add(valorField);
 
@@ -46,6 +55,8 @@ public class PrecoForm extends JDialog {
 
         if (preco != null) {
             valorField.setText(preco.getValor().toString());
+            Produto atual = produtoService.buscarPorId(preco.getProdutoId());
+            produtoCombo.setSelectedItem(atual);
         }
     }
 
@@ -54,10 +65,17 @@ public class PrecoForm extends JDialog {
             BigDecimal valor = new BigDecimal(valorField.getText());
             Date dataAtual = new Date();
 
+            Produto produtoSelecionado = (Produto) produtoCombo.getSelectedItem();
+            if (produtoSelecionado == null) {
+                JOptionPane.showMessageDialog(this, "Selecione um produto!");
+                return;
+            }
+
             if (preco == null) {
                 preco = new Preco();
             }
 
+            preco.setProdutoId(produtoSelecionado.getId());
             preco.setValor(valor);
             preco.setDataAlteracao(dataAtual);
             preco.setHoraAlteracao(dataAtual);
@@ -67,9 +85,10 @@ public class PrecoForm extends JDialog {
             ownerList.atualizarTabela();
 
             JOptionPane.showMessageDialog(this, "Preço salvo com sucesso!");
-            dispose(); // Close the form after saving
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Por favor, insira um valor numérico válido.", "Erro de Formato", JOptionPane.ERROR_MESSAGE);
+            dispose();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao salvar!");
+            ex.printStackTrace();
         }
     }
 }

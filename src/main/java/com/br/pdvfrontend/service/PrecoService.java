@@ -17,8 +17,9 @@ public class PrecoService {
             .findAndRegisterModules()
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-    private final String apiPath = "/precos";
+    private final String apiPath = "precos";
 
+    // ---------------- LISTAR ----------------
     public List<Preco> listar() {
         try {
             String jsonResponse = httpClient.get(apiPath + "/all");
@@ -34,6 +35,7 @@ public class PrecoService {
         }
     }
 
+    // ---------------- BUSCAR POR ID ----------------
     public Preco buscarPorId(Long id) {
         try {
             String jsonResponse = httpClient.get(apiPath + "/" + id);
@@ -44,15 +46,22 @@ public class PrecoService {
         }
     }
 
+    // ---------------- SALVAR (POST / PUT) ----------------
     public Preco salvar(Preco preco) {
         try {
             String jsonInput = objectMapper.writeValueAsString(preco);
             String jsonResponse;
 
             if (preco.getId() == null) {
+                // Criar
                 jsonResponse = httpClient.post(apiPath, jsonInput);
             } else {
+                // Atualizar
                 jsonResponse = httpClient.put(apiPath + "/" + preco.getId(), jsonInput);
+            }
+
+            if (jsonResponse == null || jsonResponse.isBlank()) {
+                return preco;
             }
 
             return objectMapper.readValue(jsonResponse, Preco.class);
@@ -63,6 +72,7 @@ public class PrecoService {
         }
     }
 
+    // ---------------- DELETAR ----------------
     public void deletar(Long id) {
         httpClient.delete(apiPath + "/" + id);
     }

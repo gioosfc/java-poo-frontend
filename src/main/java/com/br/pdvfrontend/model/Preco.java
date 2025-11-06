@@ -1,57 +1,28 @@
 package com.br.pdvfrontend.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import java.math.BigDecimal;
 import java.util.Date;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class Preco {
+
     private Long id;
+    private Long produtoId;
     private BigDecimal valor;
     private Date dataAlteracao;
     private Date horaAlteracao;
+    private String nomeProduto; // recebido do backend
 
-    public Preco() {
-    }
+    public Long getId() { return id; }
+    public Long getProdutoId() { return produtoId; }
+    public BigDecimal getValor() { return valor; }
+    public Date getDataAlteracao() { return dataAlteracao; }
+    public Date getHoraAlteracao() { return horaAlteracao; }
+    public String getNomeProduto() { return nomeProduto; }
 
-    public Preco (BigDecimal valor, Date dataAlteracao, Date horaAlteracao){
-        this.dataAlteracao = dataAlteracao;
-        this.horaAlteracao = horaAlteracao;
-        this.valor = valor;
-    }
-
-    //getters
-    public Long getId() {
-        return id;
-    }
-
-    public BigDecimal getValor() {
-        return valor;
-    }
-
-    public Date getDataAlteracao() {
-        return dataAlteracao;
-    }
-
-    public Date getHoraAlteracao() {
-        return horaAlteracao;
-    }
-
-    //setters
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setDataAlteracao(Date dataAlteracao) {
-        this.dataAlteracao = dataAlteracao;
-    }
-
-    public void setHoraAlteracao(Date horaAlteracao) {
-        this.horaAlteracao = horaAlteracao;
-    }
-
-    public void setValor(BigDecimal valor) {
-        this.valor = valor;
-    }
+    public void setId(Long id) { this.id = id; }
+    public void setProdutoId(Long produtoId) { this.produtoId = produtoId; }
+    public void setValor(BigDecimal valor) { this.valor = valor; }
+    public void setDataAlteracao(Date dataAlteracao) { this.dataAlteracao = dataAlteracao; }
+    public void setHoraAlteracao(Date horaAlteracao) { this.horaAlteracao = horaAlteracao; }
+    public void setNomeProduto(String nomeProduto) { this.nomeProduto = nomeProduto; }
 }

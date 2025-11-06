@@ -73,4 +73,10 @@ public class Produto {
     public void setReferencia(String referencia) {
         this.referencia = referencia;
     }
+
+    @Override
+    public String toString() {
+        return this.nome;
+    }
+
 }

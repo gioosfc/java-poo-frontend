@@ -19,6 +19,7 @@ public class CustoService {
 
     private final String apiPath = "custos";
 
+    // ---------------- LISTAR ----------------
     public List<Custos> listar() {
         try {
             String jsonResponse = httpClient.get(apiPath + "/all");
@@ -34,25 +35,35 @@ public class CustoService {
         }
     }
 
+    // ---------------- BUSCAR POR ID ----------------
     public Custos buscarPorId(Long id) {
         try {
             String jsonResponse = httpClient.get(apiPath + "/" + id);
             return objectMapper.readValue(jsonResponse, Custos.class);
+
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
     }
 
+    // ---------------- SALVAR (POST / PUT) ----------------
     public Custos salvar(Custos custo) {
         try {
             String jsonInput = objectMapper.writeValueAsString(custo);
             String jsonResponse;
 
             if (custo.getId() == null) {
+                // Criar
                 jsonResponse = httpClient.post(apiPath, jsonInput);
             } else {
+                // Atualizar
                 jsonResponse = httpClient.put(apiPath + "/" + custo.getId(), jsonInput);
+            }
+
+            // Backend não retorna → ignoramos
+            if (jsonResponse == null || jsonResponse.isBlank()) {
+                return custo;
             }
 
             return objectMapper.readValue(jsonResponse, Custos.class);
@@ -63,6 +74,7 @@ public class CustoService {
         }
     }
 
+    // ---------------- DELETAR ----------------
     public void deletar(Long id) {
         httpClient.delete(apiPath + "/" + id);
     }

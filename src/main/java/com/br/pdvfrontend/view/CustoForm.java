@@ -8,7 +8,6 @@ import com.br.pdvfrontend.service.ProdutoService;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Date;
-import java.util.List;
 
 public class CustoForm extends JDialog {
 
@@ -17,12 +16,11 @@ public class CustoForm extends JDialog {
     private final ProdutoService produtoService = new ProdutoService();
     private Custos custo;
 
+    private JComboBox<Produto> produtoCombo;
     private JTextField impostoField;
     private JTextField custoVariaveisField;
     private JTextField margemLucroField;
     private JTextField custoFixoField;
-
-    private JComboBox<Produto> comboProduto;
 
     public CustoForm(Frame owner, CustoList ownerList, CustoService custoService, Custos custo) {
         super(owner, (custo == null) ? "Novo Custo" : "Editar Custo", true);
@@ -30,20 +28,22 @@ public class CustoForm extends JDialog {
         this.custoService = custoService;
         this.custo = custo;
 
-        setTitle("Cadastro de Custo");
         setSize(400, 350);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(owner);
 
         JPanel panel = new JPanel(new GridLayout(6, 2, 10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Produto
+        // ---- PRODUTO ----
         panel.add(new JLabel("Produto:"));
-        comboProduto = new JComboBox<>();
-        carregarProdutos();
-        panel.add(comboProduto);
+        produtoCombo = new JComboBox<>();
 
+        for (Produto p : produtoService.listar()) {
+            produtoCombo.addItem(p);
+        }
+
+        panel.add(produtoCombo);
+
+        // ---- CAMPOS ----
         panel.add(new JLabel("Imposto:"));
         impostoField = new JTextField();
         panel.add(impostoField);
@@ -60,52 +60,38 @@ public class CustoForm extends JDialog {
         custoFixoField = new JTextField();
         panel.add(custoFixoField);
 
-        JButton btnSalvar = new JButton("Salvar");
-        JButton btnCancelar = new JButton("Cancelar");
-        panel.add(btnSalvar);
-        panel.add(btnCancelar);
+        // ---- BOTÕES ----
+        JButton salvar = new JButton("Salvar");
+        salvar.addActionListener(e -> onSalvar());
+        panel.add(salvar);
 
-        btnSalvar.addActionListener(e -> onSalvar());
-        btnCancelar.addActionListener(e -> dispose());
+        JButton cancelar = new JButton("Cancelar");
+        cancelar.addActionListener(e -> dispose());
+        panel.add(cancelar);
 
         add(panel);
 
-        // Preenchimento se estiver editando
+        // ---- SE FOR EDIÇÃO ----
         if (custo != null) {
-            selecionarProduto(custo.getProdutoId());
+
             impostoField.setText(String.valueOf(custo.getImposto()));
             custoVariaveisField.setText(String.valueOf(custo.getCustoVariaveis()));
             margemLucroField.setText(String.valueOf(custo.getMargemLucro()));
             custoFixoField.setText(String.valueOf(custo.getCustoFixo()));
-        }
-    }
 
-    private void carregarProdutos() {
-        List<Produto> produtos = produtoService.listar();
+            Produto atual = produtoService.buscarPorId(custo.getProdutoId());
+            produtoCombo.setSelectedItem(atual);
 
-        for (Produto p : produtos) {
-            comboProduto.addItem(p);
-        }
-    }
-
-    private void selecionarProduto(Long id) {
-        if (id == null) return;
-
-        for (int i = 0; i < comboProduto.getItemCount(); i++) {
-            Produto p = comboProduto.getItemAt(i);
-            if (p.getId().equals(id)) {
-                comboProduto.setSelectedIndex(i);
-                break;
-            }
+            // ✅ Bloqueia troca de produto ao editar
+            produtoCombo.setEnabled(false);
         }
     }
 
     private void onSalvar() {
         try {
-            Produto produtoSelecionado = (Produto) comboProduto.getSelectedItem();
-
+            Produto produtoSelecionado = (Produto) produtoCombo.getSelectedItem();
             if (produtoSelecionado == null) {
-                JOptionPane.showMessageDialog(this, "Selecione um produto!", "Erro", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Selecione um produto!");
                 return;
             }
 
@@ -113,31 +99,30 @@ public class CustoForm extends JDialog {
             double custoVariaveis = Double.parseDouble(custoVariaveisField.getText());
             double margemLucro = Double.parseDouble(margemLucroField.getText());
             double custoFixo = Double.parseDouble(custoFixoField.getText());
-            Date dataProcessamento = new Date();
 
-            if (custo == null) {
-                custo = new Custos();
+            // ✅ Reaproveita objeto ao editar
+            Custos obj = (custo != null ? custo : new Custos());
+
+            obj.setProdutoId(produtoSelecionado.getId());
+            obj.setImposto(imposto);
+            obj.setCustoVariaveis(custoVariaveis);
+            obj.setMargemLucro(margemLucro);
+            obj.setCustoFixo(custoFixo);
+
+            // ✅ Só define a data se for novo
+            if (obj.getDataProcessamento() == null) {
+                obj.setDataProcessamento(new Date());
             }
 
-            custo.setImposto(imposto);
-            custo.setCustoVariaveis(custoVariaveis);
-            custo.setMargemLucro(margemLucro);
-            custo.setCustoFixo(custoFixo);
-            custo.setDataProcessamento(dataProcessamento);
-            custo.setProdutoId(produtoSelecionado.getId()); // ✅ ESSA LINHA RESOLVE O ERRO
-
-            custoService.salvar(custo);
+            custoService.salvar(obj);
 
             ownerList.atualizarTabela();
-
             JOptionPane.showMessageDialog(this, "Custo salvo com sucesso!");
             dispose();
 
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Por favor, insira valores numéricos válidos.",
-                    "Erro de Formato",
-                    JOptionPane.ERROR_MESSAGE);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao salvar!");
+            ex.printStackTrace();
         }
     }
 }

@@ -11,90 +11,73 @@ import java.util.List;
 
 public class PrecoList extends JFrame {
 
-    private final PrecoService precoService;
-    private JTable table;
-    private DefaultTableModel tableModel;
+    private final PrecoService precoService = new PrecoService();
+    private JTable tabela;
+    private DefaultTableModel modelo;
 
     public PrecoList() {
-        this.precoService = new PrecoService();
-
         setTitle("Lista de Preços");
-        setSize(800, 600);
+        setSize(700, 350);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Tabela
-        String[] columnNames = {"ID", "Valor", "Data Alteração", "Hora Alteração"};
-        tableModel = new DefaultTableModel(columnNames, 0);
-        table = new JTable(tableModel);
-        JScrollPane scrollPane = new JScrollPane(table);
+        modelo = new DefaultTableModel(
+                new Object[]{"ID", "Produto", "Valor", "Data", "Hora"},
+                0
+        );
+        tabela = new JTable(modelo);
 
-        // Painel de botões
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton btnNovo = new JButton("Novo");
-        JButton btnEditar = new JButton("Editar");
-        JButton btnExcluir = new JButton("Excluir");
-        buttonPanel.add(btnNovo);
-        buttonPanel.add(btnEditar);
-        buttonPanel.add(btnExcluir);
+        JScrollPane scroll = new JScrollPane(tabela);
+        add(scroll, BorderLayout.CENTER);
 
-        // Layout
-        Container contentPane = getContentPane();
-        contentPane.setLayout(new BorderLayout());
-        contentPane.add(scrollPane, BorderLayout.CENTER);
-        contentPane.add(buttonPanel, BorderLayout.SOUTH);
+        JPanel panelButtons = new JPanel();
 
-        // Ações
-        btnNovo.addActionListener(e -> abrirFormulario(null));
+        JButton novo = new JButton("Novo");
+        JButton excluir = new JButton("Excluir");
 
-        btnEditar.addActionListener(e -> {
-            int selectedRow = table.getSelectedRow();
-            if (selectedRow != -1) {
-                Long id = (Long) tableModel.getValueAt(selectedRow, 0);
-                Preco precoParaEditar = precoService.buscarPorId(id);
-                abrirFormulario(precoParaEditar);
-            } else {
-                JOptionPane.showMessageDialog(this, "Selecione um preço para editar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+        panelButtons.add(novo);
+        panelButtons.add(excluir);
+
+        add(panelButtons, BorderLayout.SOUTH);
+
+        novo.addActionListener(e -> abrirForm(null));
+
+        excluir.addActionListener(e -> {
+            int linha = tabela.getSelectedRow();
+            if (linha >= 0) {
+                Long id = (Long) tabela.getValueAt(linha, 0);
+                precoService.deletar(id);
+                atualizarTabela();
             }
         });
 
-        btnExcluir.addActionListener(e -> {
-            int selectedRow = table.getSelectedRow();
-            if (selectedRow != -1) {
-                int confirm = JOptionPane.showConfirmDialog(this, "Tem certeza que deseja excluir?", "Excluir Preço", JOptionPane.YES_NO_OPTION);
-                if (confirm == JOptionPane.YES_OPTION) {
-                    Long id = (Long) tableModel.getValueAt(selectedRow, 0);
-                    precoService.deletar(id);
-                    atualizarTabela();
-                }
-            } else {
-                JOptionPane.showMessageDialog(this, "Selecione um preço para excluir.", "Aviso", JOptionPane.WARNING_MESSAGE);
-            }
-        });
-
-        // Carrega os dados iniciais
         atualizarTabela();
     }
 
-    private void abrirFormulario(Preco preco) {
-        PrecoForm form = new PrecoForm(this, this, precoService, preco);
-        form.setVisible(true);
+    public void atualizarTabela() {
+        modelo.setRowCount(0);
+        SimpleDateFormat sdfD = new SimpleDateFormat("dd/MM/yyyy");
+        SimpleDateFormat sdfH = new SimpleDateFormat("HH:mm:ss");
+
+        try {
+            List<Preco> precos = precoService.listar();
+            for (Preco p : precos) {
+                modelo.addRow(new Object[]{
+                        p.getId(),
+                        p.getNomeProduto(),
+                        p.getValor(),
+                        sdfD.format(p.getDataAlteracao()),
+                        sdfH.format(p.getHoraAlteracao())
+                });
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar preços.");
+            e.printStackTrace();
+        }
     }
 
-    public void atualizarTabela() {
-        tableModel.setRowCount(0); // Limpa a tabela
-        List<Preco> precos = precoService.listar();
-        SimpleDateFormat sdfDate = new SimpleDateFormat("dd/MM/yyyy");
-        SimpleDateFormat sdfTime = new SimpleDateFormat("HH:mm:ss");
-
-        for (Preco preco : precos) {
-            Object[] rowData = {
-                    preco.getId(),
-                    preco.getValor(),
-                    sdfDate.format(preco.getDataAlteracao()),
-                    sdfTime.format(preco.getHoraAlteracao())
-            };
-            tableModel.addRow(rowData);
-        }
+    private void abrirForm(Preco preco) {
+        PrecoForm form = new PrecoForm(this, this, precoService, preco);
+        form.setVisible(true);
     }
 }

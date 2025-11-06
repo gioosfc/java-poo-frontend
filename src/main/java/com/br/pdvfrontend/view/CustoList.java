@@ -6,96 +6,107 @@ import com.br.pdvfrontend.service.CustoService;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class CustoList extends JFrame {
 
-    private final CustoService custoService;
-    private JTable table;
-    private DefaultTableModel tableModel;
+    private final CustoService custoService = new CustoService();
+    private JTable tabela;
+    private DefaultTableModel modelo;
 
     public CustoList() {
-        this.custoService = new CustoService();
-
         setTitle("Lista de Custos");
-        setSize(800, 600);
+        setSize(700, 350);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Tabela
-        String[] columnNames = {"ID", "Imposto", "Custo Fixo", "Custo Variável", "Margem de Lucro", "Data de Processamento"};
-        tableModel = new DefaultTableModel(columnNames, 0);
-        table = new JTable(tableModel);
-        JScrollPane scrollPane = new JScrollPane(table);
+        modelo = new DefaultTableModel(
+                new Object[]{"ID", "Produto", "Imposto", "Variável", "Lucro", "Fixo", "Data"},
+                0
+        );
+        tabela = new JTable(modelo);
 
-        // Painel de botões
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JScrollPane scroll = new JScrollPane(tabela);
+        add(scroll, BorderLayout.CENTER);
+
+        JPanel panelButtons = new JPanel();
+
         JButton btnNovo = new JButton("Novo");
         JButton btnEditar = new JButton("Editar");
         JButton btnExcluir = new JButton("Excluir");
-        buttonPanel.add(btnNovo);
-        buttonPanel.add(btnEditar);
-        buttonPanel.add(btnExcluir);
 
-        // Layout
-        Container contentPane = getContentPane();
-        contentPane.setLayout(new BorderLayout());
-        contentPane.add(scrollPane, BorderLayout.CENTER);
-        contentPane.add(buttonPanel, BorderLayout.SOUTH);
+        panelButtons.add(btnNovo);
+        panelButtons.add(btnEditar);
+        panelButtons.add(btnExcluir);
 
-        // Ações
+        add(panelButtons, BorderLayout.SOUTH);
+
         btnNovo.addActionListener(e -> abrirFormulario(null));
 
         btnEditar.addActionListener(e -> {
-            int selectedRow = table.getSelectedRow();
-            if (selectedRow != -1) {
-                Long id = (Long) tableModel.getValueAt(selectedRow, 0);
-                Custos custoParaEditar = custoService.buscarPorId(id);
-                abrirFormulario(custoParaEditar);
-            } else {
-                JOptionPane.showMessageDialog(this, "Selecione um custo para editar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            int linha = tabela.getSelectedRow();
+            if (linha >= 0) {
+                Custos c = getCustoFromRow(linha);
+                abrirFormulario(c);
             }
         });
 
         btnExcluir.addActionListener(e -> {
-            int selectedRow = table.getSelectedRow();
-            if (selectedRow != -1) {
-                int confirm = JOptionPane.showConfirmDialog(this, "Tem certeza que deseja excluir?", "Excluir Custo", JOptionPane.YES_NO_OPTION);
-                if (confirm == JOptionPane.YES_OPTION) {
-                    Long id = (Long) tableModel.getValueAt(selectedRow, 0);
+            int linha = tabela.getSelectedRow();
+            if (linha >= 0) {
+                Long id = (Long) tabela.getValueAt(linha, 0);
+
+                try {
                     custoService.deletar(id);
                     atualizarTabela();
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Erro ao excluir custo!");
                 }
-            } else {
-                JOptionPane.showMessageDialog(this, "Selecione um custo para excluir.", "Aviso", JOptionPane.WARNING_MESSAGE);
             }
         });
 
-        // Carrega os dados iniciais
         atualizarTabela();
+    }
+
+    private Custos getCustoFromRow(int linha) {
+        Custos c = new Custos();
+        c.setId((Long) tabela.getValueAt(linha, 0));
+        c.setNomeProduto((String) tabela.getValueAt(linha, 1)); // novo
+
+        c.setImposto((Double) tabela.getValueAt(linha, 2));
+        c.setCustoVariaveis((Double) tabela.getValueAt(linha, 3));
+        c.setMargemLucro((Double) tabela.getValueAt(linha, 4));
+        c.setCustoFixo((Double) tabela.getValueAt(linha, 5));
+        c.setDataProcessamento((java.util.Date) tabela.getValueAt(linha, 6));
+
+        return c;
+    }
+
+
+    public void atualizarTabela() {
+        modelo.setRowCount(0);
+
+        try {
+            List<Custos> custos = custoService.listar();
+
+            for (Custos c : custos) {
+                modelo.addRow(new Object[]{
+                        c.getId(),
+                        c.getNomeProduto(),
+                        c.getImposto(),
+                        c.getCustoVariaveis(),
+                        c.getMargemLucro(),
+                        c.getCustoFixo(),
+                        c.getDataProcessamento()
+                });
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar custos!");
+        }
     }
 
     private void abrirFormulario(Custos custo) {
         CustoForm form = new CustoForm(this, this, custoService, custo);
         form.setVisible(true);
-    }
-
-    public void atualizarTabela() {
-        tableModel.setRowCount(0); // Limpa a tabela
-        List<Custos> custos = custoService.listar();
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-
-        for (Custos custo : custos) {
-            Object[] rowData = {
-                    custo.getId(),
-                    custo.getImposto(),
-                    custo.getCustoFixo(),
-                    custo.getCustoVariaveis(),
-                    custo.getMargemLucro(),
-                    sdf.format(custo.getDataProcessamento())
-            };
-            tableModel.addRow(rowData);
-        }
     }
 }
