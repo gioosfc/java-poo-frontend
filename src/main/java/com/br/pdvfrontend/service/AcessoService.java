@@ -18,7 +18,7 @@ public class AcessoService {
 
     public List<Acesso> listar() {
         try {
-            String json = http.get("acesso/all");
+            String json = http.get("acessos/all");
             Type type = new TypeToken<List<Acesso>>() {}.getType();
             return gson.fromJson(json, type);
         } catch (Exception e) {
@@ -62,7 +62,7 @@ public class AcessoService {
     }
 
     // ✅ MÉTODO LOGIN (fora do deletar)
-    public boolean login(String usuario, String senha) {
+    public Acesso login(String usuario, String senha) {
         try {
             URL url = new URL("http://localhost:8080/api/v1/acessos/login");
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -74,10 +74,17 @@ public class AcessoService {
             String json = "{ \"usuario\": \"" + usuario + "\", \"senha\": \"" + senha + "\" }";
             con.getOutputStream().write(json.getBytes());
 
-            return con.getResponseCode() == 200;
+            if (con.getResponseCode() == 200) {
+                String responseJson = new String(con.getInputStream().readAllBytes());
+                return gson.fromJson(responseJson, Acesso.class);
+            }
+
+            return null;
 
         } catch (Exception e) {
-            return false;
+            return null;
         }
     }
-}
+
+    }
+

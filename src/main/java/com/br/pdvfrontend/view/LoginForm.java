@@ -1,5 +1,7 @@
 package com.br.pdvfrontend.view;
 
+import com.br.pdvfrontend.model.Acesso;
+import com.br.pdvfrontend.model.SessaoUsuario;
 import com.br.pdvfrontend.service.AcessoService;
 
 import javax.swing.*;
@@ -40,11 +42,19 @@ public class LoginForm extends JFrame {
         String usuario = usuarioField.getText();
         String senha = new String(senhaField.getPassword());
 
-        if (service.login(usuario, senha)) {
-            dispose(); // fecha o login
-            MainApp.createAndShowGUI(); // abre o principal
+        Acesso acesso = service.login(usuario, senha);
+
+        if (acesso != null) {
+
+            SessaoUsuario.usuario = acesso.getUsuario();
+            SessaoUsuario.papel   = acesso.getPapel();
+
+            dispose();
+            MainApp.createAndShowGUI();
         } else {
             JOptionPane.showMessageDialog(this, "Usuário ou senha inválidos!");
         }
     }
+
 }
+
