@@ -7,6 +7,8 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
 
 public class AcessoService {
@@ -56,6 +58,26 @@ public class AcessoService {
             http.delete("acesso/" + id);
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    // ✅ MÉTODO LOGIN (fora do deletar)
+    public boolean login(String usuario, String senha) {
+        try {
+            URL url = new URL("http://localhost:8080/api/v1/acessos/login");
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+
+            con.setRequestMethod("POST");
+            con.setDoOutput(true);
+            con.setRequestProperty("Content-Type", "application/json");
+
+            String json = "{ \"usuario\": \"" + usuario + "\", \"senha\": \"" + senha + "\" }";
+            con.getOutputStream().write(json.getBytes());
+
+            return con.getResponseCode() == 200;
+
+        } catch (Exception e) {
+            return false;
         }
     }
 }
