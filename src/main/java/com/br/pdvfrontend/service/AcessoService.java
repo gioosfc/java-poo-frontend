@@ -28,7 +28,7 @@ public class AcessoService {
 
     public Acesso buscarPorId(Long id) {
         try {
-            String json = http.get("acesso/" + id);
+            String json = http.get("acessos/" + id);
             return gson.fromJson(json, Acesso.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -38,7 +38,7 @@ public class AcessoService {
     public void salvar(Acesso acesso) {
         try {
             String body = gson.toJson(acesso);
-            http.post("acesso", body);
+            http.post("acessos", body);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -47,7 +47,7 @@ public class AcessoService {
     public void atualizar(Long id, Acesso acesso) {
         try {
             String body = gson.toJson(acesso);
-            http.put("acesso/" + id, body);
+            http.put("acessos/" + id, body);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -55,7 +55,7 @@ public class AcessoService {
 
     public void deletar(Long id) {
         try {
-            http.delete("acesso/" + id);
+            http.delete("acessos/" + id);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

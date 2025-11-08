@@ -6,7 +6,6 @@ import com.br.pdvfrontend.service.PrecoService;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class PrecoList extends JFrame {
@@ -54,22 +53,45 @@ public class PrecoList extends JFrame {
         atualizarTabela();
     }
 
+    /**
+     * Atualiza a tabela de preços, buscando do backend
+     */
     public void atualizarTabela() {
-        modelo.setRowCount(0);
-        SimpleDateFormat sdfD = new SimpleDateFormat("dd/MM/yyyy");
-        SimpleDateFormat sdfH = new SimpleDateFormat("HH:mm:ss");
-
         try {
+            modelo.setRowCount(0); // limpa tabela
+
             List<Preco> precos = precoService.listar();
-            for (Preco p : precos) {
+            if (precos == null || precos.isEmpty()) {
+                return;
+            }
+
+            for (Preco preco : precos) {
+                String data = "-";
+                String hora = "-";
+
+                try {
+                    if (preco.getDataAlteracao() != null)
+                        data = preco.getDataAlteracao().toString().replace("T", " ");
+                } catch (Exception e) {
+                    data = "-";
+                }
+
+                try {
+                    if (preco.getHoraAlteracao() != null)
+                        hora = preco.getHoraAlteracao().toString();
+                } catch (Exception e) {
+                    hora = "-";
+                }
+
                 modelo.addRow(new Object[]{
-                        p.getId(),
-                        p.getNomeProduto(),
-                        p.getValor(),
-                        sdfD.format(p.getDataAlteracao()),
-                        sdfH.format(p.getHoraAlteracao())
+                        preco.getId(),
+                        preco.getNomeProduto(),
+                        preco.getValor(),
+                        data,
+                        hora
                 });
             }
+
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar preços.");
             e.printStackTrace();

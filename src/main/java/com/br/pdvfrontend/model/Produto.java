@@ -1,82 +1,87 @@
 package com.br.pdvfrontend.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.math.BigDecimal;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class Produto {
-    //atributos
+
     private Long id;
     private String nome;
     private String referencia;
     private String marca;
     private String categoria;
     private String fornecedor;
-
-    //construtor
-    public Produto(Long id, String nome, String referencia, String marca, String categoria, String fornecedor){
-        this.id = id;
-        this.categoria = categoria;
-        this.nome = nome;
-        this.fornecedor = fornecedor;
-        this.marca = marca;
-        this.referencia = referencia;
-    }
+    private BigDecimal custo;
+    private BigDecimal precoVenda;
 
     public Produto() {}
 
-    //getters
+    // ✅ Getters e Setters
     public Long getId() {
         return id;
     }
 
-    public String getCategoria() {
-        return categoria;
-    }
-
-    public String getFornecedor() {
-        return fornecedor;
-    }
-
-    public String getMarca() {
-        return marca;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getNome() {
         return nome;
     }
 
-    public String getReferencia() {
-        return referencia;
-    }
-
-    //setters
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setCategoria(String categoria) {
-        this.categoria = categoria;
-    }
-
-    public void setFornecedor(String fornecedor) {
-        this.fornecedor = fornecedor;
-    }
-
-    public void setMarca(String marca) {
-        this.marca = marca;
-    }
-
     public void setNome(String nome) {
         this.nome = nome;
+    }
+
+    public String getReferencia() {
+        return referencia;
     }
 
     public void setReferencia(String referencia) {
         this.referencia = referencia;
     }
 
-    @Override
-    public String toString() {
-        return this.nome;
+    public String getMarca() {
+        return marca;
     }
 
+    public void setMarca(String marca) {
+        this.marca = marca;
+    }
+
+    public String getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
+    }
+
+    public String getFornecedor() {
+        return fornecedor;
+    }
+
+    public void setFornecedor(String fornecedor) {
+        this.fornecedor = fornecedor;
+    }
+
+    public BigDecimal getCusto() {
+        return custo;
+    }
+
+    public void setCusto(BigDecimal custo) {
+        this.custo = custo;
+    }
+
+    public BigDecimal getPrecoVenda() {
+        return precoVenda;
+    }
+
+    public void setPrecoVenda(BigDecimal precoVenda) {
+        this.precoVenda = precoVenda;
+    }
+
+    @Override
+    public String toString() {
+        return nome + " (" + referencia + ")";
+    }
 }

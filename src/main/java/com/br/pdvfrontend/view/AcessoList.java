@@ -25,7 +25,7 @@ public class AcessoList extends JFrame {
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        String[] colunas = {"ID", "Usuário", "Senha"};
+        String[] colunas = {"ID", "Usuário", "Senha", "Papel"};
         tableModel = new DefaultTableModel(colunas, 0);
         table = new JTable(tableModel);
         mainPanel.add(new JScrollPane(table), BorderLayout.CENTER);
@@ -73,9 +73,14 @@ public class AcessoList extends JFrame {
 
     public void atualizarTabela() {
         List<Acesso> acessos = acessoService.listar();
-        DefaultTableModel model = new DefaultTableModel(new Object[]{"ID", "Usuário", "Senha"}, 0);
+        DefaultTableModel model = new DefaultTableModel(new Object[]{"ID", "Usuário", "Senha", "Papel"}, 0);
         for (Acesso acesso : acessos) {
-            model.addRow(new Object[]{acesso.getId(), acesso.getUsuario(), acesso.getSenha()});
+            model.addRow(new Object[]{
+                    acesso.getId(),
+                    acesso.getUsuario(),
+                    acesso.getSenha(),
+                    acesso.getPapel()
+            });
         }
         table.setModel(model);
     }

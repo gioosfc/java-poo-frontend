@@ -8,6 +8,7 @@ import com.br.pdvfrontend.service.ProdutoService;
 import javax.swing.*;
 import java.awt.*;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class PrecoForm extends JDialog {
@@ -77,8 +78,11 @@ public class PrecoForm extends JDialog {
 
             preco.setProdutoId(produtoSelecionado.getId());
             preco.setValor(valor);
-            preco.setDataAlteracao(dataAtual);
-            preco.setHoraAlteracao(dataAtual);
+
+            SimpleDateFormat formatoData = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat formatoHora = new SimpleDateFormat("HH:mm:ss");
+            preco.setDataAlteracao(formatoData.format(dataAtual));
+            preco.setHoraAlteracao(formatoHora.format(dataAtual));
 
             precoService.salvar(preco);
 
@@ -92,3 +96,4 @@ public class PrecoForm extends JDialog {
         }
     }
 }
+
