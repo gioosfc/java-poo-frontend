@@ -85,7 +85,7 @@ public class MainApp {
         // ---- Relatórios ----
         JMenu relatoriosMenu = new JMenu("Relatórios");
         JMenuItem vendasHoje = new JMenuItem("Vendas do Dia");
-        // vendasHoje.addActionListener(e -> new RelatorioVendasForm().setVisible(true));
+        vendasHoje.addActionListener(e -> new RelatorioVendasForm(mainFrame).setVisible(true));
         relatoriosMenu.add(vendasHoje);
         menuBar.add(relatoriosMenu);
 

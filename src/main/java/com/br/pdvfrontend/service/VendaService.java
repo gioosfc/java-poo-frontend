@@ -5,12 +5,14 @@ import com.br.pdvfrontend.model.VendaItem;
 import com.br.pdvfrontend.request.VendaRequest;
 import com.br.pdvfrontend.util.OffsetDateTimeAdapter;
 import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -138,5 +140,80 @@ public class VendaService {
         } catch (Exception e) {
             throw new RuntimeException("Erro ao baixar comprovante: " + e.getMessage(), e);
         }
+    }
+
+    /** 🔎 Lista vendas do relatório (com filtros) */
+    public List<Venda> listarVendas(LocalDate inicio, LocalDate fim, String forma, String placa) {
+        try {
+            String qs = String.format("?inicio=%s&fim=%s%s%s",
+                    inicio.toString(),
+                    fim.toString(),
+                    (forma != null && !forma.isBlank() && !"TODAS".equalsIgnoreCase(forma))
+                            ? "&forma=" + URLEncoder.encode(forma, StandardCharsets.UTF_8) : "",
+                    (placa != null && !placa.isBlank())
+                            ? "&placa=" + URLEncoder.encode(placa, StandardCharsets.UTF_8) : ""
+            );
+
+            URL url = new URL(BASE_URL + "/relatorio" + qs);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Accept", "application/json");
+
+            int code = conn.getResponseCode();
+            InputStream is = (code >= 200 && code < 300)
+                    ? conn.getInputStream() : conn.getErrorStream();
+
+            String resp = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            if (code >= 200 && code < 300) {
+                return gson.fromJson(resp, new TypeToken<List<Venda>>(){}.getType());
+            } else {
+                throw new RuntimeException("Erro HTTP " + code + ": " + resp);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao listar vendas: " + e.getMessage(), e);
+        }
+    }
+
+    /** 📊 Resumo por produto (para a aba de resumo do relatório) */
+    public List<ResumoProduto> resumoPorProduto(LocalDate inicio, LocalDate fim, String forma, String placa) {
+        try {
+            String qs = String.format("?inicio=%s&fim=%s%s%s",
+                    inicio.toString(),
+                    fim.toString(),
+                    (forma != null && !forma.isBlank() && !"TODAS".equalsIgnoreCase(forma))
+                            ? "&forma=" + URLEncoder.encode(forma, StandardCharsets.UTF_8) : "",
+                    (placa != null && !placa.isBlank())
+                            ? "&placa=" + URLEncoder.encode(placa, StandardCharsets.UTF_8) : ""
+            );
+
+            URL url = new URL(BASE_URL + "/resumo-produtos" + qs);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Accept", "application/json");
+
+            int code = conn.getResponseCode();
+            InputStream is = (code >= 200 && code < 300)
+                    ? conn.getInputStream() : conn.getErrorStream();
+
+            String resp = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            if (code >= 200 && code < 300) {
+                return gson.fromJson(resp, new TypeToken<List<ResumoProduto>>(){}.getType());
+            } else {
+                throw new RuntimeException("Erro HTTP " + code + ": " + resp);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao obter resumo por produto: " + e.getMessage(), e);
+        }
+    }
+
+    /** DTO simples para o resumo vindo do backend */
+    public static class ResumoProduto {
+        private String produto;
+        private java.math.BigDecimal litros;
+        private java.math.BigDecimal total;
+
+        public String getProduto() { return produto; }
+        public java.math.BigDecimal getLitros() { return litros; }
+        public java.math.BigDecimal getTotal() { return total; }
     }
 }
