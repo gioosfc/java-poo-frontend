@@ -1,5 +1,6 @@
 package com.br.pdvfrontend.request;
 
+import com.br.pdvfrontend.model.Venda;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.List;
@@ -12,11 +13,9 @@ public class VendaRequest {
     @NotNull
     private List<Item> itens;
 
-    public VendaRequest()
-    {
+    public VendaRequest(){
         itens = new java.util.ArrayList<>();
     }
-
 
     // ======= Getters e Setters =======
 
@@ -54,6 +53,7 @@ public class VendaRequest {
         private BigDecimal quantidade;
 
         private Long bombaId; // 🔹 opcional, mas útil se você diferencia por bomba
+        private String bombaNome;
 
         // Getters e Setters
         public Long getProdutoId() {
@@ -78,6 +78,14 @@ public class VendaRequest {
 
         public void setBombaId(Long bombaId) {
             this.bombaId = bombaId;
+        }
+
+        public String getBombaNome() {
+            return bombaNome;
+        }
+
+        public void setBombaNome(String bombaNome) {
+            this.bombaNome = bombaNome;
         }
     }
 }

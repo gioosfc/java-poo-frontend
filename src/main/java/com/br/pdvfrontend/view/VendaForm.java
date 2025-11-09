@@ -52,12 +52,18 @@ public class VendaForm extends JDialog {
         // === Painel de Bombas ===
         JPanel bombas = new JPanel(new GridLayout(1, 3, 10, 10));
         carregarProdutosEBombas(bombas);
-        add(bombas, BorderLayout.CENTER);
 
         // === Tabela de Itens ===
-        model = new DefaultTableModel(new Object[]{"Bomba", "Produto", "Litros (L)"}, 0);
+        model = new DefaultTableModel(new Object[]{"Bomba ID", "Bomba Nome", "Produto", "Litros (L)"}, 0);
         table = new JTable(model);
-        add(new JScrollPane(table), BorderLayout.SOUTH);
+        table.setFillsViewportHeight(true);
+        JScrollPane sp = new JScrollPane(table);
+
+        // === Split: bombas (topo) + tabela (baixo) ===
+        JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, bombas, sp);
+        split.setResizeWeight(0.6); // ~60% espaço para as bombas
+        split.setBorder(null);
+        add(split, BorderLayout.CENTER);
 
         // === Rodapé com ações ===
         JPanel south = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -67,7 +73,7 @@ public class VendaForm extends JDialog {
         btnConcluir.addActionListener(e -> concluirVenda());
         south.add(btnLimpar);
         south.add(btnConcluir);
-        add(south, BorderLayout.PAGE_END);
+        add(south, BorderLayout.SOUTH); // importante: SOUTH, não PAGE_END
     }
 
     /**
@@ -116,6 +122,8 @@ public class VendaForm extends JDialog {
         JLabel lblPreco = new JLabel("Preço/L: R$ " +
                 (produto.getPrecoVenda() != null ? produto.getPrecoVenda() : "0.00"));
 
+        JLabel lblLitros = new JLabel("Litros:");
+
         JTextField txtLitros = new JTextField();
         JButton btnAdd = new JButton("Adicionar");
 
@@ -134,6 +142,7 @@ public class VendaForm extends JDialog {
                 }
 
                 model.addRow(new Object[]{
+                        bombaId,
                         bombaNome,
                         produto.getNome() + " (ID=" + produto.getId() + ")",
                         litros.toPlainString()
@@ -148,7 +157,7 @@ public class VendaForm extends JDialog {
 
         p.add(lblProd);
         p.add(lblPreco);
-        p.add(new JLabel("Litros:"));
+        p.add(lblLitros);
         p.add(txtLitros);
         p.add(btnAdd);
 
@@ -170,9 +179,10 @@ public class VendaForm extends JDialog {
 
             List<VendaItem> itens = new ArrayList<>();
             for (int i = 0; i < model.getRowCount(); i++) {
-                String bombaNome = (String) model.getValueAt(i, 0);
-                String prodTxt = (String) model.getValueAt(i, 1);
-                String litrosStr = (String) model.getValueAt(i, 2);
+                Long bombaId = (Long) model.getValueAt(i, 0);
+                String bombaNome = (String) model.getValueAt(i, 1);
+                String prodTxt = (String) model.getValueAt(i, 2);
+                String litrosStr = (String) model.getValueAt(i, 3);
 
                 // extrai o ID real do produto da string
                 Long produtoId = Long.parseLong(
@@ -180,8 +190,6 @@ public class VendaForm extends JDialog {
                 );
 
                 BigDecimal litros = new BigDecimal(litrosStr.replace(",", "."));
-                Long bombaId = bombaNome.endsWith("1") ? 1L :
-                        bombaNome.endsWith("2") ? 2L : 3L;
 
                 Produto produto = new Produto();
                 produto.setId(produtoId);
@@ -199,7 +207,7 @@ public class VendaForm extends JDialog {
                 JOptionPane.showMessageDialog(this, "Nenhum item na venda.");
                 return;
             }
-
+            var a = cbFormaPgto.getSelectedItem();
             String forma = (String) cbFormaPgto.getSelectedItem();
             String placa = txtPlaca.getText().trim();
 
@@ -208,8 +216,6 @@ public class VendaForm extends JDialog {
             venda.setFormaPagamento(forma);
             venda.setPlaca(placa.isEmpty() ? null : placa);
             venda.setItens(itens);
-
-
 
             Venda resposta = vendaService.criarVenda(venda, placa, forma);
 

@@ -82,6 +82,7 @@ public class VendaService {
                 itemRqst.setProdutoId(item.getProduto().getId());
                 itemRqst.setQuantidade(item.getQuantidade());
                 itemRqst.setBombaId(item.getBombaId());
+                itemRqst.setBombaNome(item.getBombaNome());
                 vendaRqst.getItens().add(itemRqst);
             }
 
