@@ -37,10 +37,6 @@ public class LoginForm extends JFrame {
         JButton btnEntrar = new JButton("Entrar");
         btnEntrar.addActionListener(e -> autenticar());
         add(btnEntrar);
-
-        JButton btnSair = new JButton("Sair");
-        btnSair.addActionListener(e -> System.exit(0));
-        add(btnSair);
     }
 
     /**
