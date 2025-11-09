@@ -1,12 +1,15 @@
 package com.br.pdvfrontend.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 public class Venda {
     private Long id;
-    private LocalDateTime dataHora;
+    private OffsetDateTime dataHora;
     private String usuario;
     private String formaPagamento;
     private String placa;
@@ -18,8 +21,8 @@ public class Venda {
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public LocalDateTime getDataHora() { return dataHora; }
-    public void setDataHora(LocalDateTime dataHora) { this.dataHora = dataHora; }
+    public OffsetDateTime getDataHora() { return dataHora; }
+    public void setDataHora(OffsetDateTime dataHora) { this.dataHora = dataHora; }
 
     public String getUsuario() { return usuario; }
     public void setUsuario(String usuario) { this.usuario = usuario; }

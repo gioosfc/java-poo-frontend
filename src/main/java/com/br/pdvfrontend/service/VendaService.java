@@ -1,6 +1,9 @@
 package com.br.pdvfrontend.service;
 
 import com.br.pdvfrontend.model.Venda;
+import com.br.pdvfrontend.model.VendaItem;
+import com.br.pdvfrontend.request.VendaRequest;
+import com.br.pdvfrontend.util.OffsetDateTimeAdapter;
 import com.google.gson.*;
 
 import java.io.InputStream;
@@ -12,7 +15,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Serviço de integração com o backend para criação de vendas e download de comprovantes.
@@ -23,7 +29,9 @@ public class VendaService {
     private final Gson gson;
 
     public VendaService() {
-        gson = buildGson();
+        gson = new GsonBuilder()
+                .registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeAdapter()) // <-- LINHA CHAVE
+                .create();
     }
 
     private Gson buildGson() {
@@ -63,15 +71,28 @@ public class VendaService {
     /**
      * Envia a venda ao backend e retorna a venda salva (com ID e total).
      */
-    public Venda criarVenda(Venda venda) {
+    public Venda criarVenda(Venda venda, String placa, String forma) {
         try {
+            VendaRequest vendaRqst = new VendaRequest();
+            vendaRqst.setPlaca(placa);
+            vendaRqst.setFormaPagamento(forma);
+
+            for (VendaItem item : venda.getItens()){
+                VendaRequest.Item itemRqst = new VendaRequest.Item();
+                itemRqst.setProdutoId(item.getProduto().getId());
+                itemRqst.setQuantidade(item.getQuantidade());
+                itemRqst.setBombaId(item.getBombaId());
+                vendaRqst.getItens().add(itemRqst);
+            }
+
+
             URL url = new URL(BASE_URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setDoOutput(true);
             conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
 
-            String json = gson.toJson(venda);
+            String json = gson.toJson(vendaRqst);
             try (OutputStream os = conn.getOutputStream()) {
                 os.write(json.getBytes(StandardCharsets.UTF_8));
             }

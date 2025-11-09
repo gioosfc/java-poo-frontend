@@ -21,7 +21,7 @@ public class PrecoList extends JFrame {
         setLocationRelativeTo(null);
 
         modelo = new DefaultTableModel(
-                new Object[]{"ID", "Produto", "Valor", "Data", "Hora"},
+                new Object[]{"ID", "Produto", "Valor", "Data Alteração"},
                 0
         );
         tabela = new JTable(modelo);
@@ -67,28 +67,21 @@ public class PrecoList extends JFrame {
 
             for (Preco preco : precos) {
                 String data = "-";
-                String hora = "-";
 
                 try {
-                    if (preco.getDataAlteracao() != null)
-                        data = preco.getDataAlteracao().toString().replace("T", " ");
+                    if (preco.getDataAlteracao() != null) {
+                        // formata LocalDateTime retornado como string ISO
+                        data = preco.getDataAlteracao().replace("T", " ");
+                    }
                 } catch (Exception e) {
                     data = "-";
                 }
 
-                try {
-                    if (preco.getHoraAlteracao() != null)
-                        hora = preco.getHoraAlteracao().toString();
-                } catch (Exception e) {
-                    hora = "-";
-                }
-
                 modelo.addRow(new Object[]{
                         preco.getId(),
-                        preco.getNomeProduto(),
+                        preco.getNomeProduto() != null ? preco.getNomeProduto() : "(Sem nome)",
                         preco.getValor(),
-                        data,
-                        hora
+                        data
                 });
             }
 

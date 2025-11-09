@@ -8,7 +8,7 @@ public class VendaItem {
     private String bombaNome;
     private Produto produto; // usa o mesmo Produto que você já tem
     private BigDecimal precoUnitario;
-    private BigDecimal quantidadeLitros;
+    private BigDecimal quantidade;
     private BigDecimal subtotal;
 
     public VendaItem() {}
@@ -28,8 +28,8 @@ public class VendaItem {
     public BigDecimal getPrecoUnitario() { return precoUnitario; }
     public void setPrecoUnitario(BigDecimal precoUnitario) { this.precoUnitario = precoUnitario; }
 
-    public BigDecimal getQuantidadeLitros() { return quantidadeLitros; }
-    public void setQuantidadeLitros(BigDecimal quantidadeLitros) { this.quantidadeLitros = quantidadeLitros; }
+    public BigDecimal getQuantidade() { return quantidade; }
+    public void setQuantidade(BigDecimal quantidade) { this.quantidade = quantidade; }
 
     public BigDecimal getSubtotal() { return subtotal; }
     public void setSubtotal(BigDecimal subtotal) { this.subtotal = subtotal; }

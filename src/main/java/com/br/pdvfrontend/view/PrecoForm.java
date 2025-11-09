@@ -64,7 +64,6 @@ public class PrecoForm extends JDialog {
     private void onSalvar() {
         try {
             BigDecimal valor = new BigDecimal(valorField.getText());
-            Date dataAtual = new Date();
 
             Produto produtoSelecionado = (Produto) produtoCombo.getSelectedItem();
             if (produtoSelecionado == null) {
@@ -79,21 +78,19 @@ public class PrecoForm extends JDialog {
             preco.setProdutoId(produtoSelecionado.getId());
             preco.setValor(valor);
 
-            SimpleDateFormat formatoData = new SimpleDateFormat("yyyy-MM-dd");
-            SimpleDateFormat formatoHora = new SimpleDateFormat("HH:mm:ss");
-            preco.setDataAlteracao(formatoData.format(dataAtual));
-            preco.setHoraAlteracao(formatoHora.format(dataAtual));
-
+            // ⚠️ NÃO definimos mais dataAlteracao nem horaAlteracao — o backend faz isso
             precoService.salvar(preco);
 
             ownerList.atualizarTabela();
-
             JOptionPane.showMessageDialog(this, "Preço salvo com sucesso!");
             dispose();
+
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao salvar!");
+            JOptionPane.showMessageDialog(this, "Erro ao salvar preço: " + ex.getMessage());
             ex.printStackTrace();
         }
     }
+
 }
+
 

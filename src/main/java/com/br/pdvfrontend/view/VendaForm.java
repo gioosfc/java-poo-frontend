@@ -1,6 +1,7 @@
 package com.br.pdvfrontend.view;
 
 import com.br.pdvfrontend.model.*;
+import com.br.pdvfrontend.request.VendaRequest;
 import com.br.pdvfrontend.service.ProdutoService;
 import com.br.pdvfrontend.service.VendaService;
 
@@ -189,7 +190,7 @@ public class VendaForm extends JDialog {
                 vi.setBombaId(bombaId);
                 vi.setBombaNome(bombaNome);
                 vi.setProduto(produto);
-                vi.setQuantidadeLitros(litros);
+                vi.setQuantidade(litros);
 
                 itens.add(vi);
             }
@@ -208,7 +209,9 @@ public class VendaForm extends JDialog {
             venda.setPlaca(placa.isEmpty() ? null : placa);
             venda.setItens(itens);
 
-            Venda resposta = vendaService.criarVenda(venda);
+
+
+            Venda resposta = vendaService.criarVenda(venda, placa, forma);
 
             JOptionPane.showMessageDialog(this,
                     "Venda #" + resposta.getId() + " criada com sucesso!\nTotal: R$ " + resposta.getTotal(),

@@ -1,5 +1,7 @@
 package com.br.pdvfrontend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.math.BigDecimal;
 
 public class Produto {
@@ -12,6 +14,7 @@ public class Produto {
     private String fornecedor;
     private BigDecimal custo;
     private BigDecimal precoVenda;
+    private Preco preco;
 
     public Produto() {}
 
@@ -78,6 +81,11 @@ public class Produto {
 
     public void setPrecoVenda(BigDecimal precoVenda) {
         this.precoVenda = precoVenda;
+    }
+
+    @JsonIgnore
+    public BigDecimal getPreco() {
+        return preco.getValor();
     }
 
     @Override
