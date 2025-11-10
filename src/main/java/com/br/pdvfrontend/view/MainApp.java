@@ -37,11 +37,6 @@ public class MainApp {
     public static void createAndShowGUI() {
         JFrame mainFrame = new JFrame("AbasteceMais");
 
-        // 🔹 Adiciona ícone da aplicação
-        //var a = MainApp.class.getResource("C:\\frontend\\java-poo-frontend\\target\\classes\\images\\abastecemais_logo.png");
-        //ImageIcon logoIcon = new ImageIcon(a);
-        //mainFrame.setIconImage(logoIcon.getImage());
-
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainFrame.setSize(1000, 700);
         mainFrame.setLocationRelativeTo(null);
@@ -53,36 +48,34 @@ public class MainApp {
         JMenu pdvMenu = new JMenu("PDV");
         pdvMenu.setMnemonic('P');
 
-        JMenuItem novaVenda = new JMenuItem("Nova Venda");
-        novaVenda.setAccelerator(KeyStroke.getKeyStroke("control N"));
-        novaVenda.addActionListener(e -> new VendaForm(mainFrame).setVisible(true));
-        pdvMenu.add(novaVenda);
-
+        JMenuItem novaVenda = addMenuItem(pdvMenu, "Nova Venda", "control N",
+                () -> new VendaForm(mainFrame).setVisible(true));
         menuBar.add(pdvMenu);
 
         // ---- Cadastros ----
         JMenu cadastrosMenu = new JMenu("Cadastros");
         cadastrosMenu.setMnemonic('C');
 
-        addMenuItem(cadastrosMenu, "Pessoas", "control E", () -> new PessoaList().setVisible(true));
-        addMenuItem(cadastrosMenu, "Acessos", "control A", () -> new AcessoList().setVisible(true));
-        addMenuItem(cadastrosMenu, "Contatos", null, () -> new ContatoList().setVisible(true));
-        addMenuItem(cadastrosMenu, "Custos", null, () -> new CustoList().setVisible(true));
-        addMenuItem(cadastrosMenu, "Produtos", "control P", () -> new ProdutoList().setVisible(true));
-        addMenuItem(cadastrosMenu, "Estoques", null, () -> new EstoqueList().setVisible(true));
-        addMenuItem(cadastrosMenu, "Preços", null, () -> new PrecoList().setVisible(true));
+        JMenuItem pessoasItem   = addMenuItem(cadastrosMenu, "Pessoas",  "control E", () -> new PessoaList().setVisible(true));
+        JMenuItem acessosItem   = addMenuItem(cadastrosMenu, "Acessos",  "control A", () -> new AcessoList().setVisible(true));
+        JMenuItem contatosItem  = addMenuItem(cadastrosMenu, "Contatos", null,        () -> new ContatoList().setVisible(true));
+        JMenuItem custosItem    = addMenuItem(cadastrosMenu, "Custos",   null,        () -> new CustoList().setVisible(true));
+        JMenuItem produtosItem  = addMenuItem(cadastrosMenu, "Produtos", "control P", () -> new ProdutoList().setVisible(true));
+        JMenuItem estoquesItem  = addMenuItem(cadastrosMenu, "Estoques", null,        () -> new EstoqueList().setVisible(true));
+        JMenuItem precosItem    = addMenuItem(cadastrosMenu, "Preços",   null,        () -> new PrecoList().setVisible(true));
 
         menuBar.add(cadastrosMenu);
 
         // ---- Relatórios ----
         JMenu relatoriosMenu = new JMenu("Relatórios");
-        addMenuItem(relatoriosMenu, "Vendas do Dia", null, () -> new RelatorioVendasForm(mainFrame).setVisible(true));
+        JMenuItem vendasDiaItem = addMenuItem(relatoriosMenu, "Vendas do Dia", null,
+                () -> new RelatorioVendasForm(mainFrame).setVisible(true));
         menuBar.add(relatoriosMenu);
 
         // ---- Sistema ----
         JMenu sistemaMenu = new JMenu("Sistema");
 
-        addMenuItem(sistemaMenu, "Trocar Usuário", null, () -> {
+        JMenuItem trocarUsuarioItem = addMenuItem(sistemaMenu, "Trocar Usuário", null, () -> {
             int confirm = JOptionPane.showConfirmDialog(
                     mainFrame,
                     "Deseja sair e trocar de usuário?",
@@ -95,7 +88,7 @@ public class MainApp {
             }
         });
 
-        addMenuItem(sistemaMenu, "Sair", "alt F4", () -> {
+        JMenuItem sairItem = addMenuItem(sistemaMenu, "Sair", "alt F4", () -> {
             int confirm = JOptionPane.showConfirmDialog(
                     mainFrame,
                     "Deseja realmente sair do sistema?",
@@ -109,12 +102,32 @@ public class MainApp {
 
         menuBar.add(sistemaMenu);
 
-        // ---- Restrições por papel ----
-        if ("OPERADOR".equalsIgnoreCase(SessaoUsuario.getPapel())) {
-            // Acesso, Pessoas, Custos
-            cadastrosMenu.getMenuComponent(1).setEnabled(false);
-            cadastrosMenu.getMenuComponent(0).setEnabled(false);
-            cadastrosMenu.getMenuComponent(3).setEnabled(false);
+        // ======================= RESTRIÇÕES POR PAPEL =======================
+        String papel = SessaoUsuario.getPapel();
+
+        // Mantém a regra existente para OPERADOR
+        if ("OPERADOR".equalsIgnoreCase(papel)) {
+            acessosItem.setEnabled(false);
+            pessoasItem.setEnabled(false);
+            custosItem.setEnabled(false);
+        }
+
+        // NOVA REGRA: se for USER, só pode acessar/visualizar "Nova Venda"
+        if ("USER".equalsIgnoreCase(papel)) {
+            // Esconde menus inteiros de Cadastros e Relatórios
+            cadastrosMenu.setVisible(false);
+            relatoriosMenu.setVisible(false);
+
+            // Desabilita tudo dentro de PDV...
+            for (Component c : pdvMenu.getMenuComponents()) {
+                c.setEnabled(false);
+            }
+            // ...e reabilita apenas "Nova Venda"
+            novaVenda.setEnabled(true);
+
+            // Itens do menu Sistema permanecem para poder sair/trocar usuário
+            trocarUsuarioItem.setEnabled(true);
+            sairItem.setEnabled(true);
         }
 
         mainFrame.setJMenuBar(menuBar);
@@ -122,11 +135,8 @@ public class MainApp {
         // ======================= CONTEÚDO CENTRAL =======================
         JPanel contentPanel = new JPanel(new BorderLayout());
 
-        // 🔹 Adiciona logo acima da mensagem de boas-vindas
         JLabel logoLabel = new JLabel();
         logoLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        //var b = MainApp.class.getResource("C:\\frontend\\java-poo-frontend\\target\\classes\\images\\abastecemais_logo.png");
-        //logoLabel.setIcon(new ImageIcon(b));
         contentPanel.add(logoLabel, BorderLayout.NORTH);
 
         JLabel welcomeLabel = new JLabel("Bem-vindo ao AbasteceMais", SwingConstants.CENTER);
@@ -169,12 +179,14 @@ public class MainApp {
         mainFrame.setVisible(true);
     }
 
-    private static void addMenuItem(JMenu menu, String text, String accelerator, Runnable action) {
+    // 🔧 Agora retornando o JMenuItem para podermos habilitar/desabilitar depois
+    private static JMenuItem addMenuItem(JMenu menu, String text, String accelerator, Runnable action) {
         JMenuItem menuItem = new JMenuItem(text);
         if (accelerator != null) {
             menuItem.setAccelerator(KeyStroke.getKeyStroke(accelerator));
         }
         menuItem.addActionListener(e -> action.run());
         menu.add(menuItem);
+        return menuItem;
     }
 }

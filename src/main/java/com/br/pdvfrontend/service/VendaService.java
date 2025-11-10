@@ -112,7 +112,7 @@ public class VendaService {
             }
 
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao criar venda: " + e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 

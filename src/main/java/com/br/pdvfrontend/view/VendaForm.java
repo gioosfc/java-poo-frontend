@@ -234,8 +234,7 @@ public class VendaForm extends JDialog {
         } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this,
-                    "Erro ao concluir venda: " + ex.getMessage(),
-                    "Erro", JOptionPane.ERROR_MESSAGE);
+                    ex.getMessage());
         }
     }
 }
