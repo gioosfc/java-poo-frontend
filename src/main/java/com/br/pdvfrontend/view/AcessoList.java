@@ -2,6 +2,7 @@ package com.br.pdvfrontend.view;
 
 import com.br.pdvfrontend.model.Acesso;
 import com.br.pdvfrontend.service.AcessoService;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -18,22 +19,35 @@ public class AcessoList extends JFrame {
         this.acessoService = new AcessoService();
 
         setTitle("Cadastro de Acessos");
-        setSize(600, 400);
+        setSize(700, 500);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        String[] colunas = {"ID", "Usuário", "Senha", "Papel"};
+        // Título
+        JLabel titleLabel = new JLabel("Gerenciamento de Acessos", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Inter", Font.BOLD, 20));
+        mainPanel.add(titleLabel, BorderLayout.NORTH);
+
+        // Tabela
+        String[] colunas = {"ID", "Usuário", "Papel"};
         tableModel = new DefaultTableModel(colunas, 0);
         table = new JTable(tableModel);
         mainPanel.add(new JScrollPane(table), BorderLayout.CENTER);
 
+        // Painel de botões
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnNovo = new JButton("Novo");
+        btnNovo.setIcon(new FlatSVGIcon("icons/add.svg"));
         JButton btnEditar = new JButton("Editar");
+        btnEditar.setIcon(new FlatSVGIcon("icons/edit.svg"));
         JButton btnExcluir = new JButton("Excluir");
+        btnExcluir.setIcon(new FlatSVGIcon("icons/delete.svg"));
+        btnExcluir.putClientProperty("JButton.buttonType", "toolBarButton");
+
+
         buttonPanel.add(btnNovo);
         buttonPanel.add(btnEditar);
         buttonPanel.add(btnExcluir);
@@ -57,9 +71,19 @@ public class AcessoList extends JFrame {
         btnExcluir.addActionListener(e -> {
             int selectedRow = table.getSelectedRow();
             if (selectedRow != -1) {
-                Long id = (Long) tableModel.getValueAt(selectedRow, 0);
-                acessoService.deletar(id);
-                atualizarTabela();
+                int confirm = JOptionPane.showConfirmDialog(this,
+                        "Tem certeza que deseja excluir este acesso?",
+                        "Confirmar Exclusão",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE);
+
+                if (confirm == JOptionPane.YES_OPTION) {
+                    Long id = (Long) tableModel.getValueAt(selectedRow, 0);
+                    acessoService.deletar(id);
+                    atualizarTabela();
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Selecione um acesso para excluir.");
             }
         });
 
@@ -72,16 +96,14 @@ public class AcessoList extends JFrame {
     }
 
     public void atualizarTabela() {
+        tableModel.setRowCount(0);
         List<Acesso> acessos = acessoService.listar();
-        DefaultTableModel model = new DefaultTableModel(new Object[]{"ID", "Usuário", "Senha", "Papel"}, 0);
         for (Acesso acesso : acessos) {
-            model.addRow(new Object[]{
+            tableModel.addRow(new Object[]{
                     acesso.getId(),
                     acesso.getUsuario(),
-                    acesso.getSenha(),
                     acesso.getPapel()
             });
         }
-        table.setModel(model);
     }
 }

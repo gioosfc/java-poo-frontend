@@ -4,12 +4,11 @@ import com.br.pdvfrontend.model.Preco;
 import com.br.pdvfrontend.model.Produto;
 import com.br.pdvfrontend.service.PrecoService;
 import com.br.pdvfrontend.service.ProdutoService;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import javax.swing.*;
 import java.awt.*;
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class PrecoForm extends JDialog {
 
@@ -27,32 +26,46 @@ public class PrecoForm extends JDialog {
         this.precoService = precoService;
         this.preco = preco;
 
-        setTitle("Cadastro de Preço");
-        setSize(450, 200);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setSize(450, 220);
         setLocationRelativeTo(owner);
+        setLayout(new BorderLayout(10, 10));
 
-        JPanel panel = new JPanel(new GridLayout(3, 2, 10, 10));
+        JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        panel.add(new JLabel("Produto:"));
+        // Produto
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        panel.add(new JLabel("Produto:"), gbc);
+        gbc.gridx = 1;
         produtoCombo = new JComboBox<>();
         for (Produto p : produtoService.listar()) produtoCombo.addItem(p);
-        panel.add(produtoCombo);
+        panel.add(produtoCombo, gbc);
 
-        panel.add(new JLabel("Valor Venda:"));
-        valorField = new JTextField();
-        panel.add(valorField);
+        // Valor Venda
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        panel.add(new JLabel("Valor Venda:"), gbc);
+        gbc.gridx = 1;
+        valorField = new JTextField(15);
+        panel.add(valorField, gbc);
 
+        add(panel, BorderLayout.CENTER);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnSalvar = new JButton("Salvar");
+        btnSalvar.setIcon(new FlatSVGIcon("icons/save.svg"));
         JButton btnCancelar = new JButton("Cancelar");
-        panel.add(btnSalvar);
-        panel.add(btnCancelar);
+        btnCancelar.setIcon(new FlatSVGIcon("icons/cancel.svg"));
+        buttonPanel.add(btnSalvar);
+        buttonPanel.add(btnCancelar);
+        add(buttonPanel, BorderLayout.SOUTH);
 
         btnSalvar.addActionListener(e -> onSalvar());
         btnCancelar.addActionListener(e -> dispose());
-
-        add(panel);
 
         if (preco != null) {
             valorField.setText(preco.getValor().toString());
@@ -78,7 +91,6 @@ public class PrecoForm extends JDialog {
             preco.setProdutoId(produtoSelecionado.getId());
             preco.setValor(valor);
 
-            // ⚠️ NÃO definimos mais dataAlteracao nem horaAlteracao — o backend faz isso
             precoService.salvar(preco);
 
             ownerList.atualizarTabela();
@@ -90,7 +102,4 @@ public class PrecoForm extends JDialog {
             ex.printStackTrace();
         }
     }
-
 }
-
-

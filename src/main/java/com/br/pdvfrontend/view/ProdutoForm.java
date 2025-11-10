@@ -2,6 +2,8 @@ package com.br.pdvfrontend.view;
 
 import com.br.pdvfrontend.model.Produto;
 import com.br.pdvfrontend.service.ProdutoService;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -13,46 +15,74 @@ public class ProdutoForm extends JDialog {
     private ProdutoList parent;
 
     public ProdutoForm(ProdutoList parent, ProdutoService produtoService, Produto produto) {
+        super(parent, (produto == null ? "Novo Produto" : "Editar Produto"), true);
         this.parent = parent;
         this.produtoService = produtoService;
         this.produto = produto;
 
-        setTitle(produto == null ? "Novo Produto" : "Editar Produto");
-        setSize(400, 350);
-        setLayout(new GridLayout(7, 2, 10, 10));
+        setSize(450, 400);
         setLocationRelativeTo(parent);
-        getRootPane().setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        setLayout(new BorderLayout(10, 10));
 
-        add(new JLabel("Nome:"));
-        txtNome = new JTextField();
-        add(txtNome);
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        add(new JLabel("Referência:"));
-        txtReferencia = new JTextField();
-        add(txtReferencia);
+        // Nome
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        panel.add(new JLabel("Nome:"), gbc);
+        gbc.gridx = 1;
+        txtNome = new JTextField(20);
+        panel.add(txtNome, gbc);
 
-        add(new JLabel("Marca:"));
-        txtMarca = new JTextField();
-        add(txtMarca);
+        // Referência
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        panel.add(new JLabel("Referência:"), gbc);
+        gbc.gridx = 1;
+        txtReferencia = new JTextField(20);
+        panel.add(txtReferencia, gbc);
 
-        add(new JLabel("Categoria:"));
-        txtCategoria = new JTextField();
-        add(txtCategoria);
+        // Marca
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        panel.add(new JLabel("Marca:"), gbc);
+        gbc.gridx = 1;
+        txtMarca = new JTextField(20);
+        panel.add(txtMarca, gbc);
 
-        add(new JLabel("Fornecedor:"));
-        txtFornecedor = new JTextField();
-        add(txtFornecedor);
+        // Categoria
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        panel.add(new JLabel("Categoria:"), gbc);
+        gbc.gridx = 1;
+        txtCategoria = new JTextField(20);
+        panel.add(txtCategoria, gbc);
 
-        add(new JLabel()); // Espaçador
-        add(new JLabel()); // Espaçador
+        // Fornecedor
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        panel.add(new JLabel("Fornecedor:"), gbc);
+        gbc.gridx = 1;
+        txtFornecedor = new JTextField(20);
+        panel.add(txtFornecedor, gbc);
 
+        add(panel, BorderLayout.CENTER);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnSalvar = new JButton("Salvar");
-        btnSalvar.addActionListener(e -> salvar());
-        add(btnSalvar);
-
+        btnSalvar.setIcon(new FlatSVGIcon("icons/save.svg"));
         JButton btnCancelar = new JButton("Cancelar");
+        btnCancelar.setIcon(new FlatSVGIcon("icons/cancel.svg"));
+        buttonPanel.add(btnSalvar);
+        buttonPanel.add(btnCancelar);
+        add(buttonPanel, BorderLayout.SOUTH);
+
+        btnSalvar.addActionListener(e -> salvar());
         btnCancelar.addActionListener(e -> dispose());
-        add(btnCancelar);
 
         if (produto != null) {
             txtNome.setText(produto.getNome());
@@ -62,7 +92,6 @@ public class ProdutoForm extends JDialog {
             txtFornecedor.setText(produto.getFornecedor());
         }
 
-        setModal(true);
         setVisible(true);
     }
 

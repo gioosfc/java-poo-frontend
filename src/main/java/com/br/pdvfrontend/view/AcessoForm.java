@@ -2,6 +2,7 @@ package com.br.pdvfrontend.view;
 
 import com.br.pdvfrontend.model.Acesso;
 import com.br.pdvfrontend.service.AcessoService;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,39 +18,61 @@ public class AcessoForm extends JDialog {
     private JComboBox<String> cbPapel;
 
     public AcessoForm(Frame owner, AcessoService service, Acesso acesso, AcessoList listScreen) {
-        super(owner, "Cadastro de Acesso", true);
+        super(owner, (acesso == null ? "Novo Acesso" : "Editar Acesso"), true);
         this.listScreen = listScreen;
         this.service = service;
         this.acesso = acesso;
 
-        setSize(350, 220);
+        setSize(400, 250);
         setLocationRelativeTo(owner);
-        setLayout(new BorderLayout(5, 5));
+        setLayout(new BorderLayout(10, 10));
 
-        // Painel principal com os campos
-        JPanel panel = new JPanel(new GridLayout(3, 2, 5, 5));
+        // Painel principal com GridBagLayout
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
         // Campo Usuário
-        panel.add(new JLabel("Usuário:"));
-        txtUsuario = new JTextField();
-        panel.add(txtUsuario);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        panel.add(new JLabel("Usuário:"), gbc);
+        gbc.gridx = 1;
+        txtUsuario = new JTextField(15);
+        panel.add(txtUsuario, gbc);
 
         // Campo Senha
-        panel.add(new JLabel("Senha:"));
-        txtSenha = new JPasswordField();
-        panel.add(txtSenha);
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        panel.add(new JLabel("Senha:"), gbc);
+        gbc.gridx = 1;
+        txtSenha = new JPasswordField(15);
+        panel.add(txtSenha, gbc);
 
         // Campo Papel
-        panel.add(new JLabel("Papel:"));
-        cbPapel = new JComboBox<>(new String[]{"ADMIN", "USER"});
-        panel.add(cbPapel);
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        panel.add(new JLabel("Papel:"), gbc);
+        gbc.gridx = 1;
+        cbPapel = new JComboBox<>(new String[]{"ADMIN", "OPERADOR"});
+        panel.add(cbPapel, gbc);
 
         add(panel, BorderLayout.CENTER);
 
-        // Botão Salvar
+        // Painel de botões
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnSalvar = new JButton("Salvar");
+        btnSalvar.setIcon(new FlatSVGIcon("icons/save.svg"));
+        JButton btnCancelar = new JButton("Cancelar");
+        btnCancelar.setIcon(new FlatSVGIcon("icons/cancel.svg"));
+        buttonPanel.add(btnSalvar);
+        buttonPanel.add(btnCancelar);
+
+        add(buttonPanel, BorderLayout.SOUTH);
+
         btnSalvar.addActionListener(e -> onSalvar());
-        add(btnSalvar, BorderLayout.SOUTH);
+        btnCancelar.addActionListener(e -> dispose());
 
         // Se for edição, preencher os campos
         if (acesso != null) {
@@ -66,23 +89,31 @@ public class AcessoForm extends JDialog {
         String senha = new String(txtSenha.getPassword()).trim();
         String papel = (String) cbPapel.getSelectedItem();
 
-        if (usuario.isEmpty() || senha.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Usuário e Senha são obrigatórios!");
+        if (usuario.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "O campo Usuário é obrigatório!");
+            return;
+        }
+
+        // A senha só é obrigatória para novos usuários
+        if (acesso == null && senha.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "O campo Senha é obrigatório para novos usuários!");
             return;
         }
 
         try {
             if (acesso == null) {
                 acesso = new Acesso(null, usuario, senha, papel);
-                service.salvar(acesso);
-                JOptionPane.showMessageDialog(this, "Cadastrado com sucesso!");
             } else {
                 acesso.setUsuario(usuario);
-                acesso.setSenha(senha);
+                // Só atualiza a senha se uma nova for digitada
+                if (!senha.isEmpty()) {
+                    acesso.setSenha(senha);
+                }
                 acesso.setPapel(papel);
-                service.atualizar(acesso.getId(), acesso);
-                JOptionPane.showMessageDialog(this, "Alterado com sucesso!");
             }
+
+            service.salvar(acesso);
+            JOptionPane.showMessageDialog(this, "Acesso salvo com sucesso!");
 
             listScreen.atualizarTabela();
             dispose();

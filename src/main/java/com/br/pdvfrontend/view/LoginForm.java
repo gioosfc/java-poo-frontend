@@ -7,9 +7,6 @@ import com.br.pdvfrontend.service.AcessoService;
 import javax.swing.*;
 import java.awt.*;
 
-/**
- * Tela de login do sistema PDV do posto de combustível.
- */
 public class LoginForm extends JFrame {
 
     private final JTextField usuarioField;
@@ -17,31 +14,61 @@ public class LoginForm extends JFrame {
     private final AcessoService service = new AcessoService();
 
     public LoginForm() {
-        setTitle("Login - PDV Posto de Combustível");
-        setSize(320, 180);
+        setTitle("Login - AbasteceMais");
+        setSize(400, 250);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLayout(new GridLayout(3, 2, 10, 10));
         setLocationRelativeTo(null);
         setResizable(false);
 
-        // ===== Campos =====
-        add(new JLabel("Usuário:"));
-        usuarioField = new JTextField();
-        add(usuarioField);
+        // Painel principal com GridBagLayout
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        add(new JLabel("Senha:"));
-        senhaField = new JPasswordField();
-        add(senhaField);
+        // Título
+        JLabel titleLabel = new JLabel("AbasteceMais", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Inter", Font.BOLD, 24));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        gbc.insets = new Insets(5, 5, 20, 5);
+        panel.add(titleLabel, gbc);
 
-        // ===== Botões =====
+        // Reset insets
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.gridwidth = 1;
+
+        // Campo Usuário
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        panel.add(new JLabel("Usuário:"), gbc);
+        gbc.gridx = 1;
+        usuarioField = new JTextField(15);
+        panel.add(usuarioField, gbc);
+
+        // Campo Senha
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        panel.add(new JLabel("Senha:"), gbc);
+        gbc.gridx = 1;
+        senhaField = new JPasswordField(15);
+        panel.add(senhaField, gbc);
+
+        // Botão Entrar
         JButton btnEntrar = new JButton("Entrar");
         btnEntrar.addActionListener(e -> autenticar());
-        add(btnEntrar);
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.insets = new Insets(15, 5, 5, 5);
+        panel.add(btnEntrar, gbc);
+
+        add(panel);
     }
 
-    /**
-     * Realiza autenticação do usuário e abre a tela principal.
-     */
     private void autenticar() {
         String usuario = usuarioField.getText().trim();
         String senha = new String(senhaField.getPassword()).trim();
@@ -55,16 +82,10 @@ public class LoginForm extends JFrame {
             Acesso acesso = service.login(usuario, senha);
 
             if (acesso != null) {
-                // Armazena informações na sessão
                 SessaoUsuario.setUsuario(acesso.getUsuario());
                 SessaoUsuario.setPapel(acesso.getPapel());
-
-                // Fecha a tela de login
                 this.dispose();
-
-                // ✅ Abre o menu principal completo (com PDV, cadastros, etc.)
                 MainApp.createAndShowGUI();
-
             } else {
                 JOptionPane.showMessageDialog(this, "Usuário ou senha inválidos!");
             }
@@ -78,7 +99,6 @@ public class LoginForm extends JFrame {
         }
     }
 
-    // ====== MAIN opcional (para teste isolado) ======
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new LoginForm().setVisible(true));
     }

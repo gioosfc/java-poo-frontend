@@ -2,6 +2,7 @@ package com.br.pdvfrontend.view;
 
 import com.br.pdvfrontend.model.Contato;
 import com.br.pdvfrontend.service.ContatoService;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,20 +11,20 @@ public class ContatoForm extends JDialog {
 
     private final ContatoList ownerList;
     private final ContatoService contatoService;
-    private Contato contato; // objeto sendo editado ou null
+    private Contato contato;
 
+    private JTextField txtNome;
     private JTextField txtTelefone;
     private JTextField txtEmail;
     private JTextField txtEndereco;
-    private JTextField txtNome;
 
     public ContatoForm(Frame owner, ContatoList ownerList, ContatoService contatoService, Contato contato) {
+        super(owner, (contato == null ? "Novo Contato" : "Editar Contato"), true);
         this.ownerList = ownerList;
         this.contatoService = contatoService;
         this.contato = contato;
 
-        setTitle(contato == null ? "Novo Contato" : "Editar Contato");
-        setSize(450, 250);
+        setSize(450, 300);
         setLocationRelativeTo(owner);
         setLayout(new BorderLayout(10, 10));
 
@@ -67,7 +68,9 @@ public class ContatoForm extends JDialog {
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnSalvar = new JButton("Salvar");
+        btnSalvar.setIcon(new FlatSVGIcon("icons/save.svg"));
         JButton btnCancelar = new JButton("Cancelar");
+        btnCancelar.setIcon(new FlatSVGIcon("icons/cancel.svg"));
         buttonPanel.add(btnSalvar);
         buttonPanel.add(btnCancelar);
 
@@ -100,7 +103,6 @@ public class ContatoForm extends JDialog {
             return;
         }
 
-        // Criando contato novo
         if (contato == null) {
             contato = new Contato();
         }

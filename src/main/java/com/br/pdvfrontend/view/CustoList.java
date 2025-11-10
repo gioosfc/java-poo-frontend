@@ -2,6 +2,7 @@ package com.br.pdvfrontend.view;
 
 import com.br.pdvfrontend.model.Custos;
 import com.br.pdvfrontend.service.CustoService;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -16,79 +17,79 @@ public class CustoList extends JFrame {
 
     public CustoList() {
         setTitle("Lista de Custos");
-        setSize(700, 350);
+        setSize(800, 500);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
+
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JLabel titleLabel = new JLabel("Gerenciamento de Custos", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Inter", Font.BOLD, 20));
+        mainPanel.add(titleLabel, BorderLayout.NORTH);
 
         modelo = new DefaultTableModel(
                 new Object[]{"ID", "Produto", "Imposto", "Variável", "Lucro", "Fixo", "Data"},
                 0
         );
         tabela = new JTable(modelo);
+        mainPanel.add(new JScrollPane(tabela), BorderLayout.CENTER);
 
-        JScrollPane scroll = new JScrollPane(tabela);
-        add(scroll, BorderLayout.CENTER);
-
-        JPanel panelButtons = new JPanel();
-
+        JPanel panelButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnNovo = new JButton("Novo");
+        btnNovo.setIcon(new FlatSVGIcon("icons/add.svg"));
         JButton btnEditar = new JButton("Editar");
+        btnEditar.setIcon(new FlatSVGIcon("icons/edit.svg"));
         JButton btnExcluir = new JButton("Excluir");
+        btnExcluir.setIcon(new FlatSVGIcon("icons/delete.svg"));
+        btnExcluir.putClientProperty("JButton.buttonType", "toolBarButton");
 
         panelButtons.add(btnNovo);
         panelButtons.add(btnEditar);
         panelButtons.add(btnExcluir);
+        mainPanel.add(panelButtons, BorderLayout.SOUTH);
 
-        add(panelButtons, BorderLayout.SOUTH);
+        add(mainPanel);
 
         btnNovo.addActionListener(e -> abrirFormulario(null));
 
         btnEditar.addActionListener(e -> {
             int linha = tabela.getSelectedRow();
             if (linha >= 0) {
-                Custos c = getCustoFromRow(linha);
+                Long id = (Long) tabela.getValueAt(linha, 0);
+                Custos c = custoService.buscarPorId(id);
                 abrirFormulario(c);
+            } else {
+                JOptionPane.showMessageDialog(this, "Selecione um custo para editar.");
             }
         });
 
         btnExcluir.addActionListener(e -> {
             int linha = tabela.getSelectedRow();
             if (linha >= 0) {
-                Long id = (Long) tabela.getValueAt(linha, 0);
+                int confirm = JOptionPane.showConfirmDialog(this,
+                        "Tem certeza que deseja excluir este custo?",
+                        "Confirmar Exclusão",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE);
 
-                try {
+                if (confirm == JOptionPane.YES_OPTION) {
+                    Long id = (Long) tabela.getValueAt(linha, 0);
                     custoService.deletar(id);
                     atualizarTabela();
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(this, "Erro ao excluir custo!");
                 }
+            } else {
+                JOptionPane.showMessageDialog(this, "Selecione um custo para excluir.");
             }
         });
 
         atualizarTabela();
     }
 
-    private Custos getCustoFromRow(int linha) {
-        Custos c = new Custos();
-        c.setId((Long) tabela.getValueAt(linha, 0));
-        c.setNomeProduto((String) tabela.getValueAt(linha, 1)); // novo
-
-        c.setImposto((Double) tabela.getValueAt(linha, 2));
-        c.setCustoVariaveis((Double) tabela.getValueAt(linha, 3));
-        c.setMargemLucro((Double) tabela.getValueAt(linha, 4));
-        c.setCustoFixo((Double) tabela.getValueAt(linha, 5));
-        c.setDataProcessamento((java.util.Date) tabela.getValueAt(linha, 6));
-
-        return c;
-    }
-
-
     public void atualizarTabela() {
         modelo.setRowCount(0);
-
         try {
             List<Custos> custos = custoService.listar();
-
             for (Custos c : custos) {
                 modelo.addRow(new Object[]{
                         c.getId(),

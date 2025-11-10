@@ -2,6 +2,7 @@ package com.br.pdvfrontend.view;
 
 import com.br.pdvfrontend.model.Contato;
 import com.br.pdvfrontend.service.ContatoService;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -14,19 +15,21 @@ public class ContatoList extends JFrame {
     private JTable table;
     private DefaultTableModel tableModel;
 
-
     public ContatoList() {
         this.contatoService = new ContatoService();
 
-        // Configurações da janela
         setTitle("Cadastro de Contatos");
-        setSize(800, 400);
+        setSize(800, 500);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // --- Componentes da Tela ---
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Título
+        JLabel titleLabel = new JLabel("Gerenciamento de Contatos", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Inter", Font.BOLD, 20));
+        mainPanel.add(titleLabel, BorderLayout.NORTH);
 
         // Tabela
         String[] colunas = {"ID", "Nome", "Telefone", "Email", "Endereço"};
@@ -37,8 +40,13 @@ public class ContatoList extends JFrame {
         // Painel de botões
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnNovo = new JButton("Novo");
+        btnNovo.setIcon(new FlatSVGIcon("icons/add.svg"));
         JButton btnEditar = new JButton("Editar");
+        btnEditar.setIcon(new FlatSVGIcon("icons/edit.svg"));
         JButton btnExcluir = new JButton("Excluir");
+        btnExcluir.setIcon(new FlatSVGIcon("icons/delete.svg"));
+        btnExcluir.putClientProperty("JButton.buttonType", "toolBarButton");
+
         buttonPanel.add(btnNovo);
         buttonPanel.add(btnEditar);
         buttonPanel.add(btnExcluir);
@@ -46,7 +54,6 @@ public class ContatoList extends JFrame {
 
         add(mainPanel);
 
-        // --- Ações dos Botões ---
         btnNovo.addActionListener(e -> abrirFormulario(null));
 
         btnEditar.addActionListener(e -> {
@@ -56,25 +63,29 @@ public class ContatoList extends JFrame {
                 Contato contatoParaEditar = contatoService.buscarPorId(id);
                 abrirFormulario(contatoParaEditar);
             } else {
-                JOptionPane.showMessageDialog(this, "Selecione um contato para editar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Selecione um contato para editar.");
             }
         });
 
         btnExcluir.addActionListener(e -> {
             int selectedRow = table.getSelectedRow();
             if (selectedRow != -1) {
-                int confirm = JOptionPane.showConfirmDialog(this, "Tem certeza que deseja excluir?", "Excluir Contato", JOptionPane.YES_NO_OPTION);
+                int confirm = JOptionPane.showConfirmDialog(this,
+                        "Tem certeza que deseja excluir este contato?",
+                        "Confirmar Exclusão",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE);
+
                 if (confirm == JOptionPane.YES_OPTION) {
                     Long id = (Long) tableModel.getValueAt(selectedRow, 0);
-                    //contatoService.deletar(id);
+                    contatoService.deletar(id);
                     atualizarTabela();
                 }
             } else {
-                JOptionPane.showMessageDialog(this, "Selecione um contato para excluir.", "Aviso", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Selecione um contato para excluir.");
             }
         });
 
-        // Carrega os dados iniciais
         atualizarTabela();
     }
 
@@ -84,14 +95,10 @@ public class ContatoList extends JFrame {
     }
 
     public void atualizarTabela() {
-
-        List<Contato> contatos = contatoService.listar();
         tableModel.setRowCount(0);
-
+        List<Contato> contatos = contatoService.listar();
         for (Contato c : contatos) {
-
-            if (c == null) continue; // segurança absoluta
-
+            if (c == null) continue;
             tableModel.addRow(new Object[]{
                     c.getId(),
                     c.getNome(),
@@ -101,6 +108,4 @@ public class ContatoList extends JFrame {
             });
         }
     }
-
-
-        }
+}

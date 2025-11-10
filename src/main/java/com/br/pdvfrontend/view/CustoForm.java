@@ -4,6 +4,7 @@ import com.br.pdvfrontend.model.Custos;
 import com.br.pdvfrontend.model.Produto;
 import com.br.pdvfrontend.service.CustoService;
 import com.br.pdvfrontend.service.ProdutoService;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,52 +29,74 @@ public class CustoForm extends JDialog {
         this.custoService = custoService;
         this.custo = custo;
 
-        setSize(400, 350);
+        setSize(450, 400);
         setLocationRelativeTo(owner);
+        setLayout(new BorderLayout(10, 10));
 
-        JPanel panel = new JPanel(new GridLayout(6, 2, 10, 10));
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // ---- PRODUTO ----
-        panel.add(new JLabel("Produto:"));
+        // Produto
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        panel.add(new JLabel("Produto:"), gbc);
+        gbc.gridx = 1;
         produtoCombo = new JComboBox<>();
-
         for (Produto p : produtoService.listar()) {
             produtoCombo.addItem(p);
         }
+        panel.add(produtoCombo, gbc);
 
-        panel.add(produtoCombo);
+        // Imposto
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        panel.add(new JLabel("Imposto:"), gbc);
+        gbc.gridx = 1;
+        impostoField = new JTextField(15);
+        panel.add(impostoField, gbc);
 
-        // ---- CAMPOS ----
-        panel.add(new JLabel("Imposto:"));
-        impostoField = new JTextField();
-        panel.add(impostoField);
+        // Custo Variável
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        panel.add(new JLabel("Custo Variável:"), gbc);
+        gbc.gridx = 1;
+        custoVariaveisField = new JTextField(15);
+        panel.add(custoVariaveisField, gbc);
 
-        panel.add(new JLabel("Custo Variável:"));
-        custoVariaveisField = new JTextField();
-        panel.add(custoVariaveisField);
+        // Margem de Lucro
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        panel.add(new JLabel("Margem de Lucro:"), gbc);
+        gbc.gridx = 1;
+        margemLucroField = new JTextField(15);
+        panel.add(margemLucroField, gbc);
 
-        panel.add(new JLabel("Margem de Lucro:"));
-        margemLucroField = new JTextField();
-        panel.add(margemLucroField);
+        // Custo Fixo
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        panel.add(new JLabel("Custo Fixo:"), gbc);
+        gbc.gridx = 1;
+        custoFixoField = new JTextField(15);
+        panel.add(custoFixoField, gbc);
 
-        panel.add(new JLabel("Custo Fixo:"));
-        custoFixoField = new JTextField();
-        panel.add(custoFixoField);
+        add(panel, BorderLayout.CENTER);
 
-        // ---- BOTÕES ----
-        JButton salvar = new JButton("Salvar");
-        salvar.addActionListener(e -> onSalvar());
-        panel.add(salvar);
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton btnSalvar = new JButton("Salvar");
+        btnSalvar.setIcon(new FlatSVGIcon("icons/save.svg"));
+        JButton btnCancelar = new JButton("Cancelar");
+        btnCancelar.setIcon(new FlatSVGIcon("icons/cancel.svg"));
+        buttonPanel.add(btnSalvar);
+        buttonPanel.add(btnCancelar);
+        add(buttonPanel, BorderLayout.SOUTH);
 
-        JButton cancelar = new JButton("Cancelar");
-        cancelar.addActionListener(e -> dispose());
-        panel.add(cancelar);
+        btnSalvar.addActionListener(e -> onSalvar());
+        btnCancelar.addActionListener(e -> dispose());
 
-        add(panel);
-
-        // ---- SE FOR EDIÇÃO ----
         if (custo != null) {
-
             impostoField.setText(String.valueOf(custo.getImposto()));
             custoVariaveisField.setText(String.valueOf(custo.getCustoVariaveis()));
             margemLucroField.setText(String.valueOf(custo.getMargemLucro()));
@@ -81,8 +104,6 @@ public class CustoForm extends JDialog {
 
             Produto atual = produtoService.buscarPorId(custo.getProdutoId());
             produtoCombo.setSelectedItem(atual);
-
-            // ✅ Bloqueia troca de produto ao editar
             produtoCombo.setEnabled(false);
         }
     }
@@ -100,22 +121,18 @@ public class CustoForm extends JDialog {
             double margemLucro = Double.parseDouble(margemLucroField.getText());
             double custoFixo = Double.parseDouble(custoFixoField.getText());
 
-            // ✅ Reaproveita objeto ao editar
             Custos obj = (custo != null ? custo : new Custos());
-
             obj.setProdutoId(produtoSelecionado.getId());
             obj.setImposto(imposto);
             obj.setCustoVariaveis(custoVariaveis);
             obj.setMargemLucro(margemLucro);
             obj.setCustoFixo(custoFixo);
 
-            // ✅ Só define a data se for novo
             if (obj.getDataProcessamento() == null) {
                 obj.setDataProcessamento(new Date());
             }
 
             custoService.salvar(obj);
-
             ownerList.atualizarTabela();
             JOptionPane.showMessageDialog(this, "Custo salvo com sucesso!");
             dispose();

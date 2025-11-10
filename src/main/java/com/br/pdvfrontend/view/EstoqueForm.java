@@ -4,6 +4,7 @@ import com.br.pdvfrontend.model.Estoque;
 import com.br.pdvfrontend.model.Produto;
 import com.br.pdvfrontend.service.EstoqueService;
 import com.br.pdvfrontend.service.ProdutoService;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,19 +17,19 @@ public class EstoqueForm extends JDialog {
     private final EstoqueService estoqueService;
     private final ProdutoService produtoService;
 
-    private Estoque estoque; // nulo para novo
+    private Estoque estoque;
 
     private JComboBox<ProdutoItem> cbProduto;
     private JSpinner spQuantidade;
 
     public EstoqueForm(Frame owner, EstoqueList ownerList, EstoqueService estoqueService, ProdutoService produtoService, Estoque estoque) {
+        super(owner, (estoque == null ? "Novo Estoque" : "Editar Estoque"), true);
         this.ownerList = ownerList;
         this.estoqueService = estoqueService;
         this.produtoService = produtoService;
         this.estoque = estoque;
 
-        setTitle(estoque == null ? "Novo Estoque" : "Editar Estoque");
-        setSize(420, 200);
+        setSize(450, 220);
         setLocationRelativeTo(owner);
         setLayout(new BorderLayout(10, 10));
 
@@ -39,7 +40,8 @@ public class EstoqueForm extends JDialog {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         // Produto
-        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
         form.add(new JLabel("Produto:"), gbc);
         gbc.gridx = 1;
         cbProduto = new JComboBox<>();
@@ -47,7 +49,8 @@ public class EstoqueForm extends JDialog {
         form.add(cbProduto, gbc);
 
         // Quantidade
-        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridx = 0;
+        gbc.gridy = 1;
         form.add(new JLabel("Quantidade:"), gbc);
         gbc.gridx = 1;
         spQuantidade = new JSpinner(new SpinnerNumberModel(0.00, 0.00, 9999999.99, 0.50));
@@ -55,7 +58,9 @@ public class EstoqueForm extends JDialog {
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnSalvar = new JButton("Salvar");
+        btnSalvar.setIcon(new FlatSVGIcon("icons/save.svg"));
         JButton btnCancelar = new JButton("Cancelar");
+        btnCancelar.setIcon(new FlatSVGIcon("icons/cancel.svg"));
         buttons.add(btnSalvar);
         buttons.add(btnCancelar);
 
@@ -71,7 +76,7 @@ public class EstoqueForm extends JDialog {
     }
 
     private void carregarProdutos() {
-        List<Produto> produtos = produtoService.listarTodos();
+        List<Produto> produtos = produtoService.listar();
         cbProduto.removeAllItems();
         for (Produto p : produtos) {
             cbProduto.addItem(new ProdutoItem(p.getId(), p.getNome(), p.getReferencia()));
@@ -79,7 +84,6 @@ public class EstoqueForm extends JDialog {
     }
 
     private void carregarDados() {
-        // selecionar produto atual
         if (estoque.getProdutoId() != null) {
             for (int i = 0; i < cbProduto.getItemCount(); i++) {
                 ProdutoItem it = cbProduto.getItemAt(i);
@@ -132,7 +136,6 @@ public class EstoqueForm extends JDialog {
 
         @Override
         public String toString() {
-            // label amigável no combo
             return nome + " (" + referencia + ")";
         }
     }

@@ -2,6 +2,7 @@ package com.br.pdvfrontend.view;
 
 import com.br.pdvfrontend.model.Preco;
 import com.br.pdvfrontend.service.PrecoService;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -16,67 +17,71 @@ public class PrecoList extends JFrame {
 
     public PrecoList() {
         setTitle("Lista de Preços");
-        setSize(700, 350);
+        setSize(800, 500);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
+
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JLabel titleLabel = new JLabel("Gerenciamento de Preços", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Inter", Font.BOLD, 20));
+        mainPanel.add(titleLabel, BorderLayout.NORTH);
 
         modelo = new DefaultTableModel(
                 new Object[]{"ID", "Produto", "Valor", "Data Alteração"},
                 0
         );
         tabela = new JTable(modelo);
+        mainPanel.add(new JScrollPane(tabela), BorderLayout.CENTER);
 
-        JScrollPane scroll = new JScrollPane(tabela);
-        add(scroll, BorderLayout.CENTER);
-
-        JPanel panelButtons = new JPanel();
-
+        JPanel panelButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton novo = new JButton("Novo");
+        novo.setIcon(new FlatSVGIcon("icons/add.svg"));
         JButton excluir = new JButton("Excluir");
+        excluir.setIcon(new FlatSVGIcon("icons/delete.svg"));
+        excluir.putClientProperty("JButton.buttonType", "toolBarButton");
 
         panelButtons.add(novo);
         panelButtons.add(excluir);
+        mainPanel.add(panelButtons, BorderLayout.SOUTH);
 
-        add(panelButtons, BorderLayout.SOUTH);
+        add(mainPanel);
 
         novo.addActionListener(e -> abrirForm(null));
 
         excluir.addActionListener(e -> {
             int linha = tabela.getSelectedRow();
             if (linha >= 0) {
-                Long id = (Long) tabela.getValueAt(linha, 0);
-                precoService.deletar(id);
-                atualizarTabela();
+                int confirm = JOptionPane.showConfirmDialog(this,
+                        "Tem certeza que deseja excluir este preço?",
+                        "Confirmar Exclusão",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE);
+
+                if (confirm == JOptionPane.YES_OPTION) {
+                    Long id = (Long) tabela.getValueAt(linha, 0);
+                    precoService.deletar(id);
+                    atualizarTabela();
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Selecione um preço para excluir.");
             }
         });
 
         atualizarTabela();
     }
 
-    /**
-     * Atualiza a tabela de preços, buscando do backend
-     */
     public void atualizarTabela() {
         try {
-            modelo.setRowCount(0); // limpa tabela
-
+            modelo.setRowCount(0);
             List<Preco> precos = precoService.listar();
             if (precos == null || precos.isEmpty()) {
                 return;
             }
 
             for (Preco preco : precos) {
-                String data = "-";
-
-                try {
-                    if (preco.getDataAlteracao() != null) {
-                        // formata LocalDateTime retornado como string ISO
-                        data = preco.getDataAlteracao().replace("T", " ");
-                    }
-                } catch (Exception e) {
-                    data = "-";
-                }
-
+                String data = preco.getDataAlteracao() != null ? preco.getDataAlteracao().replace("T", " ") : "-";
                 modelo.addRow(new Object[]{
                         preco.getId(),
                         preco.getNomeProduto() != null ? preco.getNomeProduto() : "(Sem nome)",
